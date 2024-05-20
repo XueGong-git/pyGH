@@ -27,6 +27,9 @@ import sys
 from sklearn.feature_selection import VarianceThreshold
 from sklearn.decomposition import PCA, KernelPCA
 from sklearn.manifold import TSNE
+from sklearn.cluster import SpectralClustering
+import seaborn as sns
+
 simplefilter("ignore", ClusterWarning)
 #import umap.umap_ as umap
 
@@ -267,27 +270,61 @@ feat = np.load("GH_OIHP_all_l1norms.npy", allow_pickle=True)
 print(np.shape(feat))
 #savemat("GH_feat.mat", {'fdata': feat})
 
+# Perform hierarchical clustering using the distance matrix
+Z = linkage(feat, method='average')
+
+# Plot the dendrogram
+plt.figure(figsize=(8, 4))
+dendrogram(Z)
+plt.title('Hierarchical Clustering Dendrogram')
+plt.xlabel('Sample index')
+plt.ylabel('Distance')
+plt.show()
+
+# Get cluster labels (e.g., 2 clusters)
+cluster_labels = fcluster(Z, t=3, criterion='maxclust')
+print("Cluster labels:", cluster_labels)
+
+
+#### Spectral clustering ######
+sigma = 0.5
+affinity_matrix = np.exp(-feat ** 2 / (2. * sigma ** 2))
+spectral = SpectralClustering(n_clusters=3, affinity='precomputed', random_state=42)
+cluster_labels = spectral.fit_predict(affinity_matrix)
+
+print("Cluster labels:", cluster_labels)
+
+
 feat2 = []
 for i in range(len(feat)):
     tmp = []
-    #for j in range(0, 360, 40):
+    for j in range(0, 360, 40):
         #tmp.append(np.min(feat[i][j:j+40]))
         #tmp.append(np.max(feat[i][j:j+40]))
-        #tmp.append(np.mean(feat[i][j:j+40]))
+        tmp.append(np.mean(feat[i][j:j+40]))
         #tmp.append(np.std(feat[i][j:j+40]))
-    for j in range(0, 360, 120):
-        tmp.append(np.min(feat[i][j:j+120]))
-        tmp.append(np.max(feat[i][j:j+120]))
-        tmp.append(np.mean(feat[i][j:j+120]))
-        tmp.append(np.std(feat[i][j:j+120]))
+    #for j in range(0, 360, 120):
+        #tmp.append(np.min(feat[i][j:j+120]))
+        #tmp.append(np.max(feat[i][j:j+120]))
+        #tmp.append(np.mean(feat[i][j:j+120]))
+        #tmp.append(np.std(feat[i][j:j+120]))
     feat2.append(tmp)
 
-feat = np.array(feat2)
+#feat = np.array(feat2)
 #print(type(feat[0]))
+
+sns.heatmap(feat, cmap='viridis', annot=False)
+plt.show()
+
+sns.heatmap(feat2, cmap='viridis', annot=False)
+plt.show()
+
+
+
 
 
 frd = 10
-frs = 120 + 10
+frs = 40 + 10
 
 #values = PCA(n_components=2).fit_transform(feat)
 #print(values.explained_variance_ratio_)
@@ -312,9 +349,9 @@ plt.scatter(values[8*(frs-frd):9*(frs-frd),0], values[8*(frs-frd):9*(frs-frd),1]
 
 #plt.ylim(np.min(values[:, 1])-10, np.max(values[:,1])+50)
 #plt.xlim(-100, 100)
-#plt.legend(ncol=3, loc='upper left', handlelength=.5, borderpad=.25, fontsize=10)
+plt.legend(ncol=3, loc='upper left', handlelength=.5, borderpad=.25, fontsize=10)
 plt.axis('equal')
 plt.xticks([])
 plt.yticks([])
-plt.savefig("tsne_stats_40_l1norms.png", dpi=200)
-#plt.show()
+#plt.savefig("tsne_stats_40_l1norms.png", dpi=200)
+plt.show()
