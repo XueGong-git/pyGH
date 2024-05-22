@@ -125,7 +125,6 @@ def GHM(all_eigval, all_eigvec):
 
     gnm = []
     for f in range(len(all_eigval)):
-        #print(f, all_eigval[f])
         ll = list(np.where(all_eigval[f]<1e-3)[0]) #list(range(len(all_eigval[f])))#
         v1 = clean_eigvec[f][:, ll] 
 
@@ -135,7 +134,7 @@ def GHM(all_eigval, all_eigvec):
                 for j in range(0, i):
                     x1, x2 = v1[:, i], v1[:, j]
                     #print(x1, x2, np.linalg.norm(np.abs(x1)-np.abs(x2)))
-                    dx[i, j] = abs(np.sum(np.abs(x1))-np.sum(np.abs(x2))) #
+                    dx[i, j] = abs(np.sum(np.abs(x1))-np.sum(np.abs(x2))) # cocycle
             dx += np.transpose(np.tril(dx))
         gnm.append(dx)
     return gnm
@@ -144,7 +143,9 @@ def _uGH(i, j):
     op = (i,j, uGH(dist_mat[i], dist_mat[j]))
     print(op)#, np.shape(dist_mat[i]), np.shape(dist_mat[j]))
     return op
+
 """
+### Compute simplicial complices and eigenvalues, save eigenvalues and eigen vectors to npy file
 flist = glob.glob('./data/*f9[6-9][0-9].txt')
 flist = sorted(flist)
 for ll in range(len(flist)):
@@ -197,17 +198,23 @@ for ll in range(len(flist)):
     all_sx = [all_vx, all_ex]
     #h1 = nx.cycle_basis(G)
     gnm = GHM(all_eigval, all_eigvec)
-    np.save(flist[ll][:-4]+"_gnm_l1norms.npy", gnm)
+    np.save("./data/processed/" + flist[ll][7:-4]+"_gnm_l1norms.npy", gnm)
 
-flist = glob.glob('./data/*f9[6-9][0-9]_gnm_l1norms.npy')
+"""
+
+"""
+### Get a list of pairs of configurations
+
+flist = glob.glob('./processed/*f9[6-9][0-9]_gnm_l1norms.npy')
 flist = sorted(flist)
 
 dist_mat = []
 for ll in range(len(flist)):
-    print(flist[ll])
+    #print(flist[ll])
     data = np.load(flist[ll], allow_pickle=True)
     #print(np.shape(data))
     dist_mat.append(data[0])
+
 
 mat = np.zeros((len(dist_mat), len(dist_mat)))
 
@@ -217,25 +224,43 @@ for i in range(len(mat)):
         if len(dist_mat[i])>0 and len(dist_mat[j])>0 and np.array_equal(dist_mat[i], dist_mat[j])==False:
             pairs.append((i,j))
 
-no_threads = mp.cpu_count()
-p = mp.Pool(processes = no_threads)
-vals = p.starmap(_uGH, pairs)
-p.close()
-p.join()
 
-for v in vals:
-    mat[v[0], v[1]] = v[2] 
-    #print(v[0], v[1], v[2])
+### Main process for compute pairwise GH ultrametric
+def main():
+    # Create a multiprocessing pool
 
-mat += np.transpose(np.tril(mat))
-#print(mat)
+    no_threads = mp.cpu_count()
+    p = mp.Pool(processes = no_threads)
+    vals = p.starmap(_uGH, pairs)
+    p.close()
+    p.join()
+    
+    mat = np.zeros((len(dist_mat), len(dist_mat)))
 
-np.save("GH_OIHP_all_l1norms.npy", mat)
+    for v in vals:
+        mat[v[0], v[1]] = v[2] 
+        #print(v[0], v[1], v[2])
+
+    mat += np.transpose(np.tril(mat))
+    #print(mat)
+
+    np.save("GH_OIHP_all_l1norms.npy", mat)
+    
+
+if __name__ == '__main__':
+    mp.freeze_support()  # Can be omitted unless you're freezing the executable
+    main()
+
+
+
+
+
 """
-"""
+
+#"""
 mat = np.load("GH_OIHP_all_l1norms.npy", allow_pickle=True)
 #mat = np.tril(mat) + np.transpose(np.tril(mat))
-#np.save("GH_OIHP_all_l1norms.npy", mat)
+np.save("GH_OIHP_all_l1norms.npy", mat)
 
 plt.figure(dpi=100)
 plt.rcdefaults()
@@ -261,6 +286,7 @@ ax.set_aspect('equal', adjustable='box')
 plt.savefig("GH_OIHP_all_l1norms.png", dpi=200)
 #plt.show()
 
+"""
 """
 feat = np.load("GH_OIHP_all_l1norms.npy", allow_pickle=True)
 

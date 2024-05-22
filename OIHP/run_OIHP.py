@@ -87,6 +87,7 @@ def GHM(all_eigval, all_eigvec):
     return gnm
 
 flist = glob.glob("*.xyz")
+print(flist)
 #flist = [sys.argv[1]]
 for dd in flist:
     print(dd[:-4])
@@ -139,9 +140,11 @@ for dd in flist:
         all_eigvec.append(eigvec)
     all_sx = [all_vx, all_ex]
 
+
     np.save("GH_{}_filtration_l1_eigvec.npy".format(dd[:-4]), all_eigvec)
     np.save("GH_{}_filtration_l1_eigval.npy".format(dd[:-4]), all_eigval)
-
+    
+    
     gnm = GHM(all_eigval, all_eigvec)
     mat = np.zeros((len(all_eigval), len(all_eigval)))
     print(np.shape(mat))
@@ -155,7 +158,7 @@ for dd in flist:
                 mat[i, j] = U
 
     mat += np.transpose(np.tril(mat))
-
+    print(mat)
     plt.figure(dpi=200)
     plt.rcdefaults()
     ax = plt.gca()

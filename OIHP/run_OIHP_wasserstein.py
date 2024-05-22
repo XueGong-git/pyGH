@@ -215,19 +215,36 @@ def build_wm(flist):
     all_sx = [all_vx, all_ex]
     #h1 = nx.cycle_basis(G)
     wm = WM(all_eigval, all_eigvec, all_M)
-    np.save(flist[:-4]+"_wm.npy", wm)
+    np.save("./data/processed/" + flist[7:-4]+"_wm.npy", wm)
+
+
 
 """
-flist = glob.glob('./data/*f9[6-9][0-9].txt')
-flist = sorted(flist)
-no_threads = mp.cpu_count()
-p = mp.Pool(processes = no_threads)
-vals = p.map(build_wm, flist)
-p.close()
-p.join()
+### Load coordinates
+### build Wasserstein Distance matrix with multiprocessing
+
+def main():
+    # Create a multiprocessing pool
+
+    flist = glob.glob('./data/*f9[6-9][0-9].txt')
+    flist = sorted(flist)
+    no_threads = mp.cpu_count()
+    p = mp.Pool(processes = no_threads)
+    vals = p.map(build_wm, flist)
+    #vals = p.map(build_wm, ['./data/MAPbI3_Tetragonal_CNXPb_atmlist_L5_f997.txt', './data/MAPbI3_Tetragonal_CNXPb_atmlist_L5_f998.txt'])
+    p.close()
+    p.join()
+    
+
+if __name__ == '__main__':
+    main()
+
 """
-"""
-flist = glob.glob('./data/*f9[6-9][0-9]_wm.npy')
+
+
+### generate pairs of structures for calculation of pariwise uGH
+
+flist = glob.glob('./data/processed/*f9[6-9][0-9]_wm.npy')
 flist = sorted(flist)
 
 dist_mat = []
@@ -245,21 +262,38 @@ for i in range(len(mat)):
         if len(dist_mat[i])>0 and len(dist_mat[j])>0 and np.array_equal(dist_mat[i], dist_mat[j])==False:
             pairs.append((i,j))
 
-no_threads = mp.cpu_count()
-p = mp.Pool(processes = no_threads)
-vals = p.starmap(_uGH, pairs)
-p.close()
-p.join()
 
-for v in vals:
-    mat[v[0], v[1]] = v[2] 
-    #print(v[0], v[1], v[2])
 
-mat += np.transpose(np.tril(mat))
-#print(mat)
+###  calculate pairwise uGH with multiprocessing
 
-np.save("GH_OIHP_all_wm.npy", mat)
+def main():
+    # Create a multiprocessing pool
 
+    no_threads = mp.cpu_count()
+    p = mp.Pool(processes = no_threads)
+    vals = p.starmap(_uGH, pairs)
+    p.close()
+    p.join()
+    
+    mat = np.zeros((len(dist_mat), len(dist_mat)))
+
+    for v in vals:
+        mat[v[0], v[1]] = v[2] 
+        #print(v[0], v[1], v[2])
+    
+    mat += np.transpose(np.tril(mat))
+    #print(mat)
+    
+    np.save("GH_OIHP_all_wm.npy", mat)
+    
+
+if __name__ == '__main__':
+    mp.freeze_support()  # Can be omitted unless you're freezing the executable
+    main()
+
+
+
+"""
 mat = np.load("GH_OIHP_all_wm.npy", allow_pickle=True)
 #mat = np.tril(mat) + np.transpose(np.tril(mat))
 #np.save("GH_OIHP_all_l1norms.npy", mat)
@@ -288,7 +322,7 @@ ax.set_aspect('equal', adjustable='box')
 plt.savefig("GH_OIHP_all_wm.png", dpi=200)
 #plt.show()
 """
-
+"""
 feat = np.load("GH_OIHP_all_wm.npy", allow_pickle=True)
 
 #selector = VarianceThreshold()
@@ -348,3 +382,4 @@ plt.xticks([])
 plt.yticks([])
 plt.savefig("tsne_stats_40_9types_wm.png", dpi=200)
 #plt.show()
+"""

@@ -96,8 +96,7 @@ frs = 40 + 10
 
 #values = PCA(n_components=2).fit_transform(feat)
 #print(values.explained_variance_ratio_)
-coords_array = np.array(coords)
-values = TSNE(n_components=2, verbose=2).fit_transform(coords_array)
+values = TSNE(n_components=2, verbose=2).fit_transform(np.array(coords))
 
 #values = umap.UMAP(random_state=42).fit_transform(feat)
 plt.figure(figsize=(5,5), dpi=200)
