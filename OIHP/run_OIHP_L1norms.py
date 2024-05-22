@@ -134,7 +134,7 @@ def GHM(all_eigval, all_eigvec):
                 for j in range(0, i):
                     x1, x2 = v1[:, i], v1[:, j]
                     #print(x1, x2, np.linalg.norm(np.abs(x1)-np.abs(x2)))
-                    dx[i, j] = abs(np.sum(np.abs(x1))-np.sum(np.abs(x2))) # cocycle
+                    dx[i, j] = np.sum(np.abs(x1-x2)) # L1 norm
             dx += np.transpose(np.tril(dx))
         gnm.append(dx)
     return gnm
@@ -255,6 +255,7 @@ if __name__ == '__main__':
 
 
 
+
 """
 
 #"""
@@ -286,8 +287,9 @@ ax.set_aspect('equal', adjustable='box')
 plt.savefig("GH_OIHP_all_l1norms.png", dpi=200)
 #plt.show()
 
-"""
-"""
+
+
+>>>>>>> 54c0e76 (calculate cocycle distance)
 feat = np.load("GH_OIHP_all_l1norms.npy", allow_pickle=True)
 
 #selector = VarianceThreshold()
@@ -344,10 +346,6 @@ plt.show()
 
 sns.heatmap(feat2, cmap='viridis', annot=False)
 plt.show()
-
-
-
-
 
 frd = 10
 frs = 40 + 10
