@@ -241,7 +241,7 @@ if __name__ == '__main__':
 
 """
 
-
+"""
 ### generate pairs of structures for calculation of pariwise uGH
 
 flist = glob.glob('./data/processed/*f9[6-9][0-9]_wm.npy')
@@ -382,4 +382,3 @@ plt.xticks([])
 plt.yticks([])
 plt.savefig("tsne_stats_40_9types_wm.png", dpi=200)
 #plt.show()
-"""
