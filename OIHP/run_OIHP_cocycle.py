@@ -139,13 +139,12 @@ def GHM(all_eigval, all_eigvec):
         gnm.append(dx)
     return gnm
 
+
 def _uGH(i, j):
     op = (i,j, uGH(dist_mat[i], dist_mat[j]))
     print(op)#, np.shape(dist_mat[i]), np.shape(dist_mat[j]))
     return op
 
-
-### Compute simplicial complices and eigenvalues, save eigenvalues and eigen vectors to npy file
 
 def calDis():
     flist = glob.glob('./data/*f9[6-9][0-9].txt')
@@ -205,7 +204,7 @@ def calDis():
 
 def cal_uGH_matrix():
 
-    flist = glob.glob('./processed/*f9[6-9][0-9]_gnm_cocycle.npy')
+    flist = glob.glob('./data/processed/*f9[6-9][0-9]_gnm_cocycle.npy')
     flist = sorted(flist)
     
     dist_mat = []
@@ -215,6 +214,8 @@ def cal_uGH_matrix():
         #print(np.shape(data))
         dist_mat.append(data[0])
     
+    mat = np.zeros((len(dist_mat), len(dist_mat)))
+
     
     pairs = []
     for i in range(len(mat)):
@@ -229,7 +230,6 @@ def cal_uGH_matrix():
     p.close()
     p.join()
     
-    mat = np.zeros((len(dist_mat), len(dist_mat)))
     
     for v in vals:
         mat[v[0], v[1]] = v[2] 

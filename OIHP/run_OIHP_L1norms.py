@@ -139,11 +139,10 @@ def GHM(all_eigval, all_eigvec):
         gnm.append(dx)
     return gnm
 
-def _uGH(i, j):
+def _uGH(dist_mat, i, j):
     op = (i,j, uGH(dist_mat[i], dist_mat[j]))
     print(op)#, np.shape(dist_mat[i]), np.shape(dist_mat[j]))
     return op
-
 
 ### Compute simplicial complices and eigenvalues, save eigenvalues and eigen vectors to npy file
 
@@ -205,22 +204,24 @@ def calDis():
 
 def cal_uGH_matrix():
 
-    flist = glob.glob('./processed/*f9[6-9][0-9]_gnm_l1norms.npy')
+    flist = glob.glob('./data/processed/*f9[6-9][0-9]_gnm_l1norms.npy')
     flist = sorted(flist)
     
     dist_mat = []
     for ll in range(len(flist)):
+    #for ll in range(6):
         #print(flist[ll])
         data = np.load(flist[ll], allow_pickle=True)
         #print(np.shape(data))
         dist_mat.append(data[0])
     
-    
+    mat = np.zeros((len(dist_mat), len(dist_mat)))
+
     pairs = []
     for i in range(len(mat)):
         for j in range(0, i):
             if len(dist_mat[i])>0 and len(dist_mat[j])>0 and np.array_equal(dist_mat[i], dist_mat[j])==False:
-                pairs.append((i,j))
+                pairs.append((dist_mat, i,j))
     
     
     no_threads = mp.cpu_count()
@@ -229,7 +230,6 @@ def cal_uGH_matrix():
     p.close()
     p.join()
     
-    mat = np.zeros((len(dist_mat), len(dist_mat)))
     
     for v in vals:
         mat[v[0], v[1]] = v[2] 
@@ -242,6 +242,7 @@ def cal_uGH_matrix():
     
     
 def cluster(ncluster):
+    
     mat = np.load("GH_OIHP_all_l1norms.npy", allow_pickle=True)
     #mat = np.tril(mat) + np.transpose(np.tril(mat))
     np.save("GH_OIHP_all_l1norms.npy", mat)
@@ -279,6 +280,9 @@ def cluster(ncluster):
     print(np.shape(feat))
     #savemat("GH_feat.mat", {'fdata': feat})
     
+    
+    
+    """
     # Perform hierarchical clustering using the distance matrix
     Z = linkage(feat, method='average')
     
@@ -293,8 +297,9 @@ def cluster(ncluster):
     # Get cluster labels (e.g., 2 clusters)
     cluster_labels = fcluster(Z, t=3, criterion='maxclust')
     print("Cluster labels:", cluster_labels)
+    """
     
-    
+    """
     #### Spectral clustering ######
     sigma = 0.5
     affinity_matrix = np.exp(-feat ** 2 / (2. * sigma ** 2))
@@ -302,7 +307,7 @@ def cluster(ncluster):
     cluster_labels = spectral.fit_predict(affinity_matrix)
     
     print("Cluster labels:", cluster_labels)
-    
+    """
     
     feat2 = []
     for i in range(len(feat)):
@@ -365,6 +370,6 @@ def cluster(ncluster):
 
 
 if __name__ == '__main__':
-    #calDis()
-    #cal_uGH_matrix()
-    cluster(ncluster = 4)
+    #calDis()  # calculate distance matrix for each structure and save data, takes ~ 3 min
+    cal_uGH_matrix() # calculate pairwise uGH between structures and save the matrix
+    #cluster(ncluster = 4) # cluster data according to uGH matrix
