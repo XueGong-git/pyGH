@@ -120,6 +120,11 @@ def GHM(all_eigval, all_eigvec):
     clean_eigvec = [] 
     for f in range(len(all_eigvec)):
         eigvec = all_eigvec[f]
+
+        # eigenvectors are adjusted to ensure that the first element of each eigenvector is positive
+        col_idx = (eigvec[:, 0] < 0)   # find columns where the first elemet is zero
+        eigvec[:, col_idx] = -  eigvec[:, col_idx] 
+
         eigvec[np.abs(eigvec)<1e-3] = 0 # Zero the entries due to precision 
         clean_eigvec.append(eigvec)
 
@@ -140,7 +145,7 @@ def GHM(all_eigval, all_eigvec):
     return gnm
 
 
-def _uGH(i, j):
+def _uGH(dist_mat, i, j):
     op = (i,j, uGH(dist_mat[i], dist_mat[j]))
     print(op)#, np.shape(dist_mat[i]), np.shape(dist_mat[j]))
     return op
@@ -199,12 +204,12 @@ def calDis():
         all_sx = [all_vx, all_ex]
         #h1 = nx.cycle_basis(G)
         gnm = GHM(all_eigval, all_eigvec)
-        np.save("./data/processed/" + flist[ll][7:-4]+"_gnm_cocycle.npy", gnm)
+        np.save("./data/processed/" + flist[ll][7:-4]+"_gnm_cocycle2.npy", gnm)
 
 
 def cal_uGH_matrix():
 
-    flist = glob.glob('./data/processed/*f9[6-9][0-9]_gnm_cocycle.npy')
+    flist = glob.glob('./data/processed/*f9[6-9][0-9]_gnm_cocycle2.npy')
     flist = sorted(flist)
     
     dist_mat = []
@@ -221,7 +226,7 @@ def cal_uGH_matrix():
     for i in range(len(mat)):
         for j in range(0, i):
             if len(dist_mat[i])>0 and len(dist_mat[j])>0 and np.array_equal(dist_mat[i], dist_mat[j])==False:
-                pairs.append((i,j))
+                pairs.append((dist_mat,i,j))
     
     
     no_threads = mp.cpu_count()
@@ -238,13 +243,13 @@ def cal_uGH_matrix():
     mat += np.transpose(np.tril(mat))
     #print(mat)
     
-    np.save("GH_OIHP_all_cocycle.npy", mat)
+    np.save("GH_OIHP_all_cocycle2.npy", mat)
     
     
 def cluster(ncluster):
-    mat = np.load("GH_OIHP_all_cocycle.npy", allow_pickle=True)
+    mat = np.load("GH_OIHP_all_cocycle2.npy", allow_pickle=True)
     #mat = np.tril(mat) + np.transpose(np.tril(mat))
-    np.save("GH_OIHP_all_cocycle.npy", mat)
+    np.save("GH_OIHP_all_cocycle2.npy", mat)
     
     plt.figure(dpi=100)
     plt.rcdefaults()
@@ -267,11 +272,11 @@ def cluster(ncluster):
     cax = divider.append_axes("right", size="5%", pad=0.05)
     plt.colorbar(im, cax=cax)
     ax.set_aspect('equal', adjustable='box')
-    plt.savefig("GH_OIHP_all_cocycle.png", dpi=200)
+    plt.savefig("GH_OIHP_all_cocycle2.png", dpi=200)
     #plt.show()
     
     
-    feat = np.load("GH_OIHP_all_cocycle.npy", allow_pickle=True)
+    feat = np.load("GH_OIHP_all_cocycle2.npy", allow_pickle=True)
     
     #selector = VarianceThreshold()
     #feat = selector.fit_transform(feat)
@@ -360,11 +365,11 @@ def cluster(ncluster):
     plt.axis('equal')
     plt.xticks([])
     plt.yticks([])
-    #plt.savefig("tsne_stats_40_cocycle.png", dpi=200)
+    #plt.savefig("tsne_stats_40_cocycle2.png", dpi=200)
     plt.show()
 
 
 if __name__ == '__main__':
     #calDis()  # calculate distance matrix for each structure and save data
-    #cal_uGH_matrix() # calculate pairwise uGH between structures and save the matrix
-    cluster(ncluster = 4) # cluster data according to uGH matrix
+    cal_uGH_matrix() # calculate pairwise uGH between structures and save the matrix
+    #cluster(ncluster = 4) # cluster data according to uGH matrix

@@ -30,6 +30,9 @@ from sklearn.manifold import TSNE
 from sklearn.cluster import SpectralClustering
 import seaborn as sns
 
+
+
+
 simplefilter("ignore", ClusterWarning)
 #import umap.umap_ as umap
 
@@ -120,6 +123,11 @@ def GHM(all_eigval, all_eigvec):
     clean_eigvec = [] 
     for f in range(len(all_eigvec)):
         eigvec = all_eigvec[f]
+        
+        # eigenvectors are adjusted to ensure that the first element of each eigenvector is positive
+        col_idx = (eigvec[:, 0] < 0)   # find columns where the first elemet is zero
+        eigvec[:, col_idx] = -  eigvec[:, col_idx] 
+
         eigvec[np.abs(eigvec)<1e-3] = 0 # Zero the entries due to precision 
         clean_eigvec.append(eigvec)
 
@@ -133,7 +141,6 @@ def GHM(all_eigval, all_eigvec):
             for i in range(len(dx)):
                 for j in range(0, i):
                     x1, x2 = v1[:, i], v1[:, j]
-                    #print(x1, x2, np.linalg.norm(np.abs(x1)-np.abs(x2)))
                     dx[i, j] = np.sum(np.abs(x1-x2)) # L1 norm
             dx += np.transpose(np.tril(dx))
         gnm.append(dx)
@@ -199,12 +206,12 @@ def calDis():
         all_sx = [all_vx, all_ex]
         #h1 = nx.cycle_basis(G)
         gnm = GHM(all_eigval, all_eigvec)
-        np.save("./data/processed/" + flist[ll][7:-4]+"_gnm_l1norms.npy", gnm)
+        np.save("./data/processed/" + flist[ll][7:-4]+"_gnm_l1norms2.npy", gnm)
 
 
 def cal_uGH_matrix():
 
-    flist = glob.glob('./data/processed/*f9[6-9][0-9]_gnm_l1norms.npy')
+    flist = glob.glob('./data/processed/*f9[6-9][0-9]_gnm_l1norms2.npy')
     flist = sorted(flist)
     
     dist_mat = []
@@ -238,14 +245,14 @@ def cal_uGH_matrix():
     mat += np.transpose(np.tril(mat))
     #print(mat)
     
-    np.save("GH_OIHP_all_l1norms.npy", mat)
+    np.save("GH_OIHP_all_l1norms2.npy", mat)
     
     
 def cluster(ncluster):
     
-    mat = np.load("GH_OIHP_all_l1norms.npy", allow_pickle=True)
+    mat = np.load("GH_OIHP_all_l1norms2.npy", allow_pickle=True)
     #mat = np.tril(mat) + np.transpose(np.tril(mat))
-    np.save("GH_OIHP_all_l1norms.npy", mat)
+    np.save("GH_OIHP_all_l1norms2.npy", mat)
     
     plt.figure(dpi=100)
     plt.rcdefaults()
@@ -268,11 +275,11 @@ def cluster(ncluster):
     cax = divider.append_axes("right", size="5%", pad=0.05)
     plt.colorbar(im, cax=cax)
     ax.set_aspect('equal', adjustable='box')
-    plt.savefig("GH_OIHP_all_l1norms.png", dpi=200)
+    plt.savefig("GH_OIHP_all_l1norms2.png", dpi=200)
     #plt.show()
     
     
-    feat = np.load("GH_OIHP_all_l1norms.npy", allow_pickle=True)
+    feat = np.load("GH_OIHP_all_l1norms2.npy", allow_pickle=True)
     
     #selector = VarianceThreshold()
     #feat = selector.fit_transform(feat)
@@ -365,7 +372,7 @@ def cluster(ncluster):
     plt.axis('equal')
     plt.xticks([])
     plt.yticks([])
-    #plt.savefig("tsne_stats_40_l1norms.png", dpi=200)
+    #plt.savefig("tsne_stats_40_l1norms2.png", dpi=200)
     plt.show()
 
 
