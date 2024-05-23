@@ -144,91 +144,85 @@ def _uGH(i, j):
     print(op)#, np.shape(dist_mat[i]), np.shape(dist_mat[j]))
     return op
 
-"""
+
 ### Compute simplicial complices and eigenvalues, save eigenvalues and eigen vectors to npy file
-flist = glob.glob('./data/*f9[6-9][0-9].txt')
-flist = sorted(flist)
-for ll in range(len(flist)):
-    #print(flist[ll])
-    file = open(flist[ll])
-    contents = file.readlines()
-    for i in range(len(contents)):
-        contents[i] = contents[i].rstrip("\n").split(",")
-        contents[i] = [float(s) for s in contents[i]]
-        
-    all_eigval, all_eigvec, all_graphs = [], [], []
-    all_ex, all_vx = [], []
-    #all_eigval, all_eigvec = [], []
-    #rc = gd.AlphaComplex(coords)
-    #simplex_tree = rc.create_simplex_tree()
-    #val = list(simplex_tree.get_filtration())
-    #print(val)
-    alpha = gd.AlphaComplex(contents)
-    st = alpha.create_simplex_tree()
-    val = list(st.get_filtration())
-    for f in [3.5]:#np.arange(3, 10, 1):
-        print(flist[ll], f)
-        simplices = set()
-        for v in val:
-            if np.sqrt(v[1])*2 <= f:
-                simplices.add(tuple(v[0]))
 
-        #edge_idx = list(n_faces(simplices,1))
-        #vert_idx = list(n_faces(simplices,0))
-        #all_ex.append(edge_idx)
-        #all_vx.append(vert_idx)
-        #G = nx.Graph()
-        #for i in range(len(vert_idx)):
-            #G.add_node((i))
-        #for (x,y) in edge_idx:
-            #G.add_edge(x,y)
-        #all_graphs.append(G)
-        #print(edge_idx, G.edges())
-        #nx.draw(G, with_labels=True)
-        #laplacian = np.matmul(boundary_operator(simplices, 1).toarray(), np.transpose(boundary_operator(simplices, 1).toarray()))
-        laplacian = np.matmul(boundary_operator(simplices, 2).toarray(), np.transpose(boundary_operator(simplices, 2).toarray()))+np.matmul(np.transpose(boundary_operator(simplices, 1).toarray()), boundary_operator(simplices, 1).toarray())
-        #laplacian = np.matmul(boundary_operator(simplices, 3).toarray(), np.transpose(boundary_operator(simplices, 3).toarray()))+np.matmul(np.transpose(boundary_operator(simplices, 2).toarray()), boundary_operator(simplices, 2).toarray())
-        eigval, eigvec = np.linalg.eigh(laplacian)
-        #u, s, vh = np.linalg.svd(laplacian)
-        #eigval = s*s
-        #eigvec = np.transpose(vh)
-        #print(eigval)
-        all_eigval.append(eigval)
-        all_eigvec.append(eigvec)
-    all_sx = [all_vx, all_ex]
-    #h1 = nx.cycle_basis(G)
-    gnm = GHM(all_eigval, all_eigvec)
-    np.save("./data/processed/" + flist[ll][7:-4]+"_gnm_l1norms.npy", gnm)
-
-"""
-
-"""
-### Get a list of pairs of configurations
-
-flist = glob.glob('./processed/*f9[6-9][0-9]_gnm_l1norms.npy')
-flist = sorted(flist)
-
-dist_mat = []
-for ll in range(len(flist)):
-    #print(flist[ll])
-    data = np.load(flist[ll], allow_pickle=True)
-    #print(np.shape(data))
-    dist_mat.append(data[0])
+def calDis():
+    flist = glob.glob('./data/*f9[6-9][0-9].txt')
+    flist = sorted(flist)
+    for ll in range(len(flist)):
+        #print(flist[ll])
+        file = open(flist[ll])
+        contents = file.readlines()
+        for i in range(len(contents)):
+            contents[i] = contents[i].rstrip("\n").split(",")
+            contents[i] = [float(s) for s in contents[i]]
+            
+        all_eigval, all_eigvec, all_graphs = [], [], []
+        all_ex, all_vx = [], []
+        #all_eigval, all_eigvec = [], []
+        #rc = gd.AlphaComplex(coords)
+        #simplex_tree = rc.create_simplex_tree()
+        #val = list(simplex_tree.get_filtration())
+        #print(val)
+        alpha = gd.AlphaComplex(contents)
+        st = alpha.create_simplex_tree()
+        val = list(st.get_filtration())
+        for f in [3.5]:#np.arange(3, 10, 1):
+            print(flist[ll], f)
+            simplices = set()
+            for v in val:
+                if np.sqrt(v[1])*2 <= f:
+                    simplices.add(tuple(v[0]))
+    
+            #edge_idx = list(n_faces(simplices,1))
+            #vert_idx = list(n_faces(simplices,0))
+            #all_ex.append(edge_idx)
+            #all_vx.append(vert_idx)
+            #G = nx.Graph()
+            #for i in range(len(vert_idx)):
+                #G.add_node((i))
+            #for (x,y) in edge_idx:
+                #G.add_edge(x,y)
+            #all_graphs.append(G)
+            #print(edge_idx, G.edges())
+            #nx.draw(G, with_labels=True)
+            #laplacian = np.matmul(boundary_operator(simplices, 1).toarray(), np.transpose(boundary_operator(simplices, 1).toarray()))
+            laplacian = np.matmul(boundary_operator(simplices, 2).toarray(), np.transpose(boundary_operator(simplices, 2).toarray()))+np.matmul(np.transpose(boundary_operator(simplices, 1).toarray()), boundary_operator(simplices, 1).toarray())
+            #laplacian = np.matmul(boundary_operator(simplices, 3).toarray(), np.transpose(boundary_operator(simplices, 3).toarray()))+np.matmul(np.transpose(boundary_operator(simplices, 2).toarray()), boundary_operator(simplices, 2).toarray())
+            eigval, eigvec = np.linalg.eigh(laplacian)
+            #u, s, vh = np.linalg.svd(laplacian)
+            #eigval = s*s
+            #eigvec = np.transpose(vh)
+            #print(eigval)
+            all_eigval.append(eigval)
+            all_eigvec.append(eigvec)
+        all_sx = [all_vx, all_ex]
+        #h1 = nx.cycle_basis(G)
+        gnm = GHM(all_eigval, all_eigvec)
+        np.save("./data/processed/" + flist[ll][7:-4]+"_gnm_l1norms.npy", gnm)
 
 
-mat = np.zeros((len(dist_mat), len(dist_mat)))
+def cal_uGH_matrix():
 
-pairs = []
-for i in range(len(mat)):
-    for j in range(0, i):
-        if len(dist_mat[i])>0 and len(dist_mat[j])>0 and np.array_equal(dist_mat[i], dist_mat[j])==False:
-            pairs.append((i,j))
-
-
-### Main process for compute pairwise GH ultrametric
-def main():
-    # Create a multiprocessing pool
-
+    flist = glob.glob('./processed/*f9[6-9][0-9]_gnm_l1norms.npy')
+    flist = sorted(flist)
+    
+    dist_mat = []
+    for ll in range(len(flist)):
+        #print(flist[ll])
+        data = np.load(flist[ll], allow_pickle=True)
+        #print(np.shape(data))
+        dist_mat.append(data[0])
+    
+    
+    pairs = []
+    for i in range(len(mat)):
+        for j in range(0, i):
+            if len(dist_mat[i])>0 and len(dist_mat[j])>0 and np.array_equal(dist_mat[i], dist_mat[j])==False:
+                pairs.append((i,j))
+    
+    
     no_threads = mp.cpu_count()
     p = mp.Pool(processes = no_threads)
     vals = p.starmap(_uGH, pairs)
@@ -236,146 +230,141 @@ def main():
     p.join()
     
     mat = np.zeros((len(dist_mat), len(dist_mat)))
-
+    
     for v in vals:
         mat[v[0], v[1]] = v[2] 
         #print(v[0], v[1], v[2])
-
+    
     mat += np.transpose(np.tril(mat))
     #print(mat)
-
+    
     np.save("GH_OIHP_all_l1norms.npy", mat)
     
+    
+def cluster(ncluster):
+    mat = np.load("GH_OIHP_all_l1norms.npy", allow_pickle=True)
+    #mat = np.tril(mat) + np.transpose(np.tril(mat))
+    np.save("GH_OIHP_all_l1norms.npy", mat)
+    
+    plt.figure(dpi=100)
+    plt.rcdefaults()
+    ax = plt.gca()
+    #plt.xticks([0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20], ["0.1", "0.3", "0.5", "0.7", "0.9", "1.1", "1.3", "1.5", "1.7", "1.9", "2.0"])
+    #plt.yticks([0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20], ["0.1", "0.3", "0.5", "0.7", "0.9", "1.1", "1.3", "1.5", "1.7", "1.9", "2.0"])
+    #plt.xticks(range(0, 24, 4), [str(i) for i in np.arange(3, 9, 1)])
+    #plt.yticks(range(0, 24, 4), [str(i) for i in np.arange(3, 9, 1)])
+    #cmap = mpl.cm.get_cmap("coolwarm").copy()
+    #cmap.set_under(color='white')
+    
+    im = ax.imshow(mat, cmap="coolwarm")
+    # Minor ticks
+    #ax.set_xticks(np.arange(-.5, 9, 1), minor=True)
+    #ax.set_yticks(np.arange(-.5, 9, 1), minor=True)
+    
+    # Gridlines based on minor ticks
+    #ax.grid(which='minor', color='k', linestyle='-', linewidth=1.2)
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+    plt.colorbar(im, cax=cax)
+    ax.set_aspect('equal', adjustable='box')
+    plt.savefig("GH_OIHP_all_l1norms.png", dpi=200)
+    #plt.show()
+    
+    
+    feat = np.load("GH_OIHP_all_l1norms.npy", allow_pickle=True)
+    
+    #selector = VarianceThreshold()
+    #feat = selector.fit_transform(feat)
+    #print(feat)
+    print(np.shape(feat))
+    #savemat("GH_feat.mat", {'fdata': feat})
+    
+    # Perform hierarchical clustering using the distance matrix
+    Z = linkage(feat, method='average')
+    
+    # Plot the dendrogram
+    plt.figure(figsize=(8, 4))
+    dendrogram(Z)
+    plt.title('Hierarchical Clustering Dendrogram')
+    plt.xlabel('Sample index')
+    plt.ylabel('Distance')
+    plt.show()
+    
+    # Get cluster labels (e.g., 2 clusters)
+    cluster_labels = fcluster(Z, t=3, criterion='maxclust')
+    print("Cluster labels:", cluster_labels)
+    
+    
+    #### Spectral clustering ######
+    sigma = 0.5
+    affinity_matrix = np.exp(-feat ** 2 / (2. * sigma ** 2))
+    spectral = SpectralClustering(n_clusters=3, affinity='precomputed', random_state=42)
+    cluster_labels = spectral.fit_predict(affinity_matrix)
+    
+    print("Cluster labels:", cluster_labels)
+    
+    
+    feat2 = []
+    for i in range(len(feat)):
+        tmp = []
+        if ncluster == 9:
+            for j in range(0, 360, 40):
+                tmp.append(np.min(feat[i][j:j+40]))
+                #tmp.append(np.max(feat[i][j:j+40]))
+                #tmp.append(np.mean(feat[i][j:j+40]))
+                #tmp.append(np.std(feat[i][j:j+40]))
+        elif ncluster == 4:
+            for j in range(0, 360, 120):
+                tmp.append(np.min(feat[i][j:j+120]))
+                tmp.append(np.max(feat[i][j:j+120]))
+                tmp.append(np.mean(feat[i][j:j+120]))
+                tmp.append(np.std(feat[i][j:j+120]))
+        feat2.append(tmp)
+    
+    feat = np.array(feat2)
+    #print(type(feat[0]))
+    
+    sns.heatmap(feat, cmap='viridis', annot=False)
+    plt.show()
+    
+    sns.heatmap(feat2, cmap='viridis', annot=False)
+    plt.show()
+    
+    frd = 10
+    frs = 40 + 10
+    
+    #values = PCA(n_components=2).fit_transform(feat)
+    #print(values.explained_variance_ratio_)
+    values = TSNE(n_components=2, verbose=2).fit_transform(feat)
+    
+    #values = umap.UMAP(random_state=42).fit_transform(feat)
+    plt.figure(figsize=(5,5), dpi=200)
+    mpl.rcParams['axes.spines.right'] = False
+    mpl.rcParams['axes.spines.top'] = False
+    
+    plt.scatter(values[:(frs-frd),0], values[:(frs-frd),1], marker='.', color='tab:blue', alpha=0.75, linewidth=.5, s=20, label="Br-Cubic")
+    plt.scatter(values[(frs-frd):2*(frs-frd),0], values[(frs-frd):2*(frs-frd),1], marker='.', color='tab:orange', alpha=0.75,  linewidth=0.5, s=20, label="Br-Ortho")
+    plt.scatter(values[2*(frs-frd):3*(frs-frd),0], values[2*(frs-frd):3*(frs-frd),1], marker='.', color='tab:green', alpha=0.75,  linewidth=0.5, s=20, label="Br-Tetra")
+    
+    plt.scatter(values[3*(frs-frd):4*(frs-frd),0], values[3*(frs-frd):4*(frs-frd),1], marker='.', color='tab:red', alpha=0.75,  linewidth=0.5, s=20, label="Cl-Cubic")
+    plt.scatter(values[4*(frs-frd):5*(frs-frd),0], values[4*(frs-frd):5*(frs-frd),1], marker='.', color='tab:purple', alpha=0.75,  linewidth=0.5, s=20, label="Cl-Ortho")
+    plt.scatter(values[5*(frs-frd):6*(frs-frd),0], values[5*(frs-frd):6*(frs-frd),1], marker='.', color='tab:brown', alpha=0.75,  linewidth=0.5, s=20, label="Cl-Tetra")
+    
+    plt.scatter(values[6*(frs-frd):7*(frs-frd),0], values[6*(frs-frd):7*(frs-frd),1],  marker='.',color='tab:pink', alpha=0.75,  linewidth=0.5, s=20, label="I-Cubic")
+    plt.scatter(values[7*(frs-frd):8*(frs-frd),0], values[7*(frs-frd):8*(frs-frd),1],  marker='.',color='tab:gray', alpha=0.75,  linewidth=0.5, s=20, label="I-Ortho")
+    plt.scatter(values[8*(frs-frd):9*(frs-frd),0], values[8*(frs-frd):9*(frs-frd),1],  marker='.',color='tab:olive', alpha=0.75,  linewidth=0.5, s=20, label="I-Tetra")
+    
+    #plt.ylim(np.min(values[:, 1])-10, np.max(values[:,1])+50)
+    #plt.xlim(-100, 100)
+    plt.legend(ncol=3, loc='upper left', handlelength=.5, borderpad=.25, fontsize=10)
+    plt.axis('equal')
+    plt.xticks([])
+    plt.yticks([])
+    #plt.savefig("tsne_stats_40_l1norms.png", dpi=200)
+    plt.show()
+
 
 if __name__ == '__main__':
-    mp.freeze_support()  # Can be omitted unless you're freezing the executable
-    main()
-
-
-
-
-
-
-"""
-
-#"""
-mat = np.load("GH_OIHP_all_l1norms.npy", allow_pickle=True)
-#mat = np.tril(mat) + np.transpose(np.tril(mat))
-np.save("GH_OIHP_all_l1norms.npy", mat)
-
-plt.figure(dpi=100)
-plt.rcdefaults()
-ax = plt.gca()
-#plt.xticks([0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20], ["0.1", "0.3", "0.5", "0.7", "0.9", "1.1", "1.3", "1.5", "1.7", "1.9", "2.0"])
-#plt.yticks([0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20], ["0.1", "0.3", "0.5", "0.7", "0.9", "1.1", "1.3", "1.5", "1.7", "1.9", "2.0"])
-#plt.xticks(range(0, 24, 4), [str(i) for i in np.arange(3, 9, 1)])
-#plt.yticks(range(0, 24, 4), [str(i) for i in np.arange(3, 9, 1)])
-#cmap = mpl.cm.get_cmap("coolwarm").copy()
-#cmap.set_under(color='white')
-
-im = ax.imshow(mat, cmap="coolwarm")
-# Minor ticks
-#ax.set_xticks(np.arange(-.5, 9, 1), minor=True)
-#ax.set_yticks(np.arange(-.5, 9, 1), minor=True)
-
-# Gridlines based on minor ticks
-#ax.grid(which='minor', color='k', linestyle='-', linewidth=1.2)
-divider = make_axes_locatable(ax)
-cax = divider.append_axes("right", size="5%", pad=0.05)
-plt.colorbar(im, cax=cax)
-ax.set_aspect('equal', adjustable='box')
-plt.savefig("GH_OIHP_all_l1norms.png", dpi=200)
-#plt.show()
-
-
-
->>>>>>> 54c0e76 (calculate cocycle distance)
-feat = np.load("GH_OIHP_all_l1norms.npy", allow_pickle=True)
-
-#selector = VarianceThreshold()
-#feat = selector.fit_transform(feat)
-#print(feat)
-print(np.shape(feat))
-#savemat("GH_feat.mat", {'fdata': feat})
-
-# Perform hierarchical clustering using the distance matrix
-Z = linkage(feat, method='average')
-
-# Plot the dendrogram
-plt.figure(figsize=(8, 4))
-dendrogram(Z)
-plt.title('Hierarchical Clustering Dendrogram')
-plt.xlabel('Sample index')
-plt.ylabel('Distance')
-plt.show()
-
-# Get cluster labels (e.g., 2 clusters)
-cluster_labels = fcluster(Z, t=3, criterion='maxclust')
-print("Cluster labels:", cluster_labels)
-
-
-#### Spectral clustering ######
-sigma = 0.5
-affinity_matrix = np.exp(-feat ** 2 / (2. * sigma ** 2))
-spectral = SpectralClustering(n_clusters=3, affinity='precomputed', random_state=42)
-cluster_labels = spectral.fit_predict(affinity_matrix)
-
-print("Cluster labels:", cluster_labels)
-
-
-feat2 = []
-for i in range(len(feat)):
-    tmp = []
-    for j in range(0, 360, 40):
-        #tmp.append(np.min(feat[i][j:j+40]))
-        #tmp.append(np.max(feat[i][j:j+40]))
-        tmp.append(np.mean(feat[i][j:j+40]))
-        #tmp.append(np.std(feat[i][j:j+40]))
-    #for j in range(0, 360, 120):
-        #tmp.append(np.min(feat[i][j:j+120]))
-        #tmp.append(np.max(feat[i][j:j+120]))
-        #tmp.append(np.mean(feat[i][j:j+120]))
-        #tmp.append(np.std(feat[i][j:j+120]))
-    feat2.append(tmp)
-
-#feat = np.array(feat2)
-#print(type(feat[0]))
-
-sns.heatmap(feat, cmap='viridis', annot=False)
-plt.show()
-
-sns.heatmap(feat2, cmap='viridis', annot=False)
-plt.show()
-
-frd = 10
-frs = 40 + 10
-
-#values = PCA(n_components=2).fit_transform(feat)
-#print(values.explained_variance_ratio_)
-values = TSNE(n_components=2, verbose=2).fit_transform(feat)
-
-#values = umap.UMAP(random_state=42).fit_transform(feat)
-plt.figure(figsize=(5,5), dpi=200)
-mpl.rcParams['axes.spines.right'] = False
-mpl.rcParams['axes.spines.top'] = False
-
-plt.scatter(values[:(frs-frd),0], values[:(frs-frd),1], marker='.', color='tab:blue', alpha=0.75, linewidth=.5, s=20, label="Br-Cubic")
-plt.scatter(values[(frs-frd):2*(frs-frd),0], values[(frs-frd):2*(frs-frd),1], marker='.', color='tab:orange', alpha=0.75,  linewidth=0.5, s=20, label="Br-Ortho")
-plt.scatter(values[2*(frs-frd):3*(frs-frd),0], values[2*(frs-frd):3*(frs-frd),1], marker='.', color='tab:green', alpha=0.75,  linewidth=0.5, s=20, label="Br-Tetra")
-
-plt.scatter(values[3*(frs-frd):4*(frs-frd),0], values[3*(frs-frd):4*(frs-frd),1], marker='.', color='tab:red', alpha=0.75,  linewidth=0.5, s=20, label="Cl-Cubic")
-plt.scatter(values[4*(frs-frd):5*(frs-frd),0], values[4*(frs-frd):5*(frs-frd),1], marker='.', color='tab:purple', alpha=0.75,  linewidth=0.5, s=20, label="Cl-Ortho")
-plt.scatter(values[5*(frs-frd):6*(frs-frd),0], values[5*(frs-frd):6*(frs-frd),1], marker='.', color='tab:brown', alpha=0.75,  linewidth=0.5, s=20, label="Cl-Tetra")
-
-plt.scatter(values[6*(frs-frd):7*(frs-frd),0], values[6*(frs-frd):7*(frs-frd),1],  marker='.',color='tab:pink', alpha=0.75,  linewidth=0.5, s=20, label="I-Cubic")
-plt.scatter(values[7*(frs-frd):8*(frs-frd),0], values[7*(frs-frd):8*(frs-frd),1],  marker='.',color='tab:gray', alpha=0.75,  linewidth=0.5, s=20, label="I-Ortho")
-plt.scatter(values[8*(frs-frd):9*(frs-frd),0], values[8*(frs-frd):9*(frs-frd),1],  marker='.',color='tab:olive', alpha=0.75,  linewidth=0.5, s=20, label="I-Tetra")
-
-#plt.ylim(np.min(values[:, 1])-10, np.max(values[:,1])+50)
-#plt.xlim(-100, 100)
-plt.legend(ncol=3, loc='upper left', handlelength=.5, borderpad=.25, fontsize=10)
-plt.axis('equal')
-plt.xticks([])
-plt.yticks([])
-#plt.savefig("tsne_stats_40_l1norms.png", dpi=200)
-plt.show()
+    #calDis()
+    #cal_uGH_matrix()
+    cluster(ncluster = 4)

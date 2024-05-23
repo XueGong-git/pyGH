@@ -220,8 +220,7 @@ def build_wm(flist):
 
 
 """
-### Load coordinates
-### build Wasserstein Distance matrix with multiprocessing
+### Load coordinates and build Wasserstein Distance matrix with multiprocessing
 
 def main():
     # Create a multiprocessing pool
