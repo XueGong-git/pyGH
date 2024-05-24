@@ -371,5 +371,5 @@ def cluster(ncluster):
 
 if __name__ == '__main__':
     #calDis()  # calculate distance matrix for each structure and save data
-    cal_uGH_matrix() # calculate pairwise uGH between structures and save the matrix
-    #cluster(ncluster = 4) # cluster data according to uGH matrix
+    #cal_uGH_matrix() # calculate pairwise uGH between structures and save the matrix
+    cluster(ncluster = 4) # cluster data according to uGH matrix
