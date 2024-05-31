@@ -219,10 +219,10 @@ def build_wm(flist):
 
 
 
-"""
+
 ### Load coordinates and build Wasserstein Distance matrix with multiprocessing
 
-def main():
+def build_wm_multiprocessing():
     # Create a multiprocessing pool
 
     flist = glob.glob('./data/*f9[6-9][0-9].txt')
@@ -235,37 +235,28 @@ def main():
     p.join()
     
 
-if __name__ == '__main__':
-    main()
-
-"""
-
-"""
 ### generate pairs of structures for calculation of pariwise uGH
 
-flist = glob.glob('./data/processed/*f9[6-9][0-9]_wm.npy')
-flist = sorted(flist)
+def build_uGH():
+    
+    flist = glob.glob('./data/processed/*f9[6-9][0-9]_wm.npy')
+    flist = sorted(flist)
+    
+    dist_mat = []
+    for ll in range(len(flist)):
+        print(flist[ll])
+        data = np.load(flist[ll], allow_pickle=True)
+        #print(np.shape(data))
+        dist_mat.append(data[0])
+    
+    mat = np.zeros((len(dist_mat), len(dist_mat)))
+    
+    pairs = []
+    for i in range(len(mat)):
+        for j in range(0, i):
+            if len(dist_mat[i])>0 and len(dist_mat[j])>0 and np.array_equal(dist_mat[i], dist_mat[j])==False:
+                pairs.append((i,j))
 
-dist_mat = []
-for ll in range(len(flist)):
-    print(flist[ll])
-    data = np.load(flist[ll], allow_pickle=True)
-    #print(np.shape(data))
-    dist_mat.append(data[0])
-
-mat = np.zeros((len(dist_mat), len(dist_mat)))
-
-pairs = []
-for i in range(len(mat)):
-    for j in range(0, i):
-        if len(dist_mat[i])>0 and len(dist_mat[j])>0 and np.array_equal(dist_mat[i], dist_mat[j])==False:
-            pairs.append((i,j))
-
-
-
-###  calculate pairwise uGH with multiprocessing
-
-def main():
     # Create a multiprocessing pool
 
     no_threads = mp.cpu_count()
@@ -286,98 +277,74 @@ def main():
     np.save("GH_OIHP_all_wm.npy", mat)
     
 
+def cluster_wm(ncluster = None):
+    mat = np.load("GH_OIHP_all_wm.npy", allow_pickle=True)
+    
+    
+    # plot mat as heat map and save mimage
+    plt.imshow(mat, cmap='coolwarm', interpolation='nearest')
+    plt.colorbar()  # Add a colorbar to show the scale
+    plt.savefig('uGH_wm.png', dpi=300, bbox_inches='tight')  # Save the figure with high resolution
+    plt.show()  # Display the plot
+
+    feat = mat
+    
+
+    
+    #feat2 = []
+    #for i in range(len(feat)):
+    #    tmp = []
+    #    for j in range(0, 360, 40):
+    #        tmp.append(np.min(feat[i][j:j+40]))
+    #        tmp.append(np.max(feat[i][j:j+40]))
+    #        tmp.append(np.mean(feat[i][j:j+40]))
+    #        tmp.append(np.std(feat[i][j:j+40]))
+    #    for j in range(0, 360, 120):
+    #        tmp.append(np.min(feat[i][j:j+120]))
+    #        tmp.append(np.max(feat[i][j:j+120]))
+    #        tmp.append(np.mean(feat[i][j:j+120]))
+    #        tmp.append(np.std(feat[i][j:j+120]))
+    #    feat2.append(tmp)
+    
+    #feat = np.array(feat2)
+    #print(type(feat[0]))
+    
+    
+    frd = 10
+    frs = 360//ncluster + 10
+    
+    #values = PCA(n_components=2).fit_transform(feat)
+    #print(values.explained_variance_ratio_)
+    values = TSNE(n_components=2, verbose=2).fit_transform(feat)
+    
+    #values = umap.UMAP(random_state=42).fit_transform(feat)
+    plt.figure(figsize=(5,5), dpi=200)
+    mpl.rcParams['axes.spines.right'] = False
+    mpl.rcParams['axes.spines.top'] = False
+    
+    if ncluster == 9:
+        plt.scatter(values[:(frs-frd),0], values[:(frs-frd),1], marker='.', color='tab:blue', alpha=0.75, linewidth=.5, s=20, label="Br-Cubic")
+        plt.scatter(values[(frs-frd):2*(frs-frd),0], values[(frs-frd):2*(frs-frd),1], marker='.', color='tab:orange', alpha=0.75,  linewidth=0.5, s=20, label="Br-Ortho")
+        plt.scatter(values[2*(frs-frd):3*(frs-frd),0], values[2*(frs-frd):3*(frs-frd),1], marker='.', color='tab:green', alpha=0.75,  linewidth=0.5, s=20, label="Br-Tetra")
+        
+        plt.scatter(values[3*(frs-frd):4*(frs-frd),0], values[3*(frs-frd):4*(frs-frd),1], marker='.', color='tab:red', alpha=0.75,  linewidth=0.5, s=20, label="Cl-Cubic")
+        plt.scatter(values[4*(frs-frd):5*(frs-frd),0], values[4*(frs-frd):5*(frs-frd),1], marker='.', color='tab:purple', alpha=0.75,  linewidth=0.5, s=20, label="Cl-Ortho")
+        plt.scatter(values[5*(frs-frd):6*(frs-frd),0], values[5*(frs-frd):6*(frs-frd),1], marker='.', color='tab:brown', alpha=0.75,  linewidth=0.5, s=20, label="Cl-Tetra")
+        
+        plt.scatter(values[6*(frs-frd):7*(frs-frd),0], values[6*(frs-frd):7*(frs-frd),1],  marker='.',color='tab:pink', alpha=0.75,  linewidth=0.5, s=20, label="I-Cubic")
+        plt.scatter(values[7*(frs-frd):8*(frs-frd),0], values[7*(frs-frd):8*(frs-frd),1],  marker='.',color='tab:gray', alpha=0.75,  linewidth=0.5, s=20, label="I-Ortho")
+        plt.scatter(values[8*(frs-frd):9*(frs-frd),0], values[8*(frs-frd):9*(frs-frd),1],  marker='.',color='tab:olive', alpha=0.75,  linewidth=0.5, s=20, label="I-Tetra")
+        
+        #plt.ylim(np.min(values[:, 1])-10, np.max(values[:,1])+50)
+        #plt.xlim(-100, 100)
+        #plt.legend(ncol=3, loc='upper left', handlelength=.5, borderpad=.25, fontsize=10)
+        plt.axis('equal')
+        plt.xticks([])
+        plt.yticks([])
+        plt.savefig("tsne_stats_40_9types_wm.png", dpi=200)
+        #plt.show()
+
 if __name__ == '__main__':
-    mp.freeze_support()  # Can be omitted unless you're freezing the executable
-    main()
-
-
-
-"""
-mat = np.load("GH_OIHP_all_wm.npy", allow_pickle=True)
-#mat = np.tril(mat) + np.transpose(np.tril(mat))
-#np.save("GH_OIHP_all_l1norms.npy", mat)
-
-plt.figure(dpi=100)
-plt.rcdefaults()
-ax = plt.gca()
-#plt.xticks([0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20], ["0.1", "0.3", "0.5", "0.7", "0.9", "1.1", "1.3", "1.5", "1.7", "1.9", "2.0"])
-#plt.yticks([0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20], ["0.1", "0.3", "0.5", "0.7", "0.9", "1.1", "1.3", "1.5", "1.7", "1.9", "2.0"])
-#plt.xticks(range(0, 24, 4), [str(i) for i in np.arange(3, 9, 1)])
-#plt.yticks(range(0, 24, 4), [str(i) for i in np.arange(3, 9, 1)])
-#cmap = mpl.cm.get_cmap("coolwarm").copy()
-#cmap.set_under(color='white')
-
-im = ax.imshow(mat, cmap="coolwarm")
-# Minor ticks
-#ax.set_xticks(np.arange(-.5, 9, 1), minor=True)
-#ax.set_yticks(np.arange(-.5, 9, 1), minor=True)
-
-# Gridlines based on minor ticks
-#ax.grid(which='minor', color='k', linestyle='-', linewidth=1.2)
-divider = make_axes_locatable(ax)
-cax = divider.append_axes("right", size="5%", pad=0.05)
-plt.colorbar(im, cax=cax)
-ax.set_aspect('equal', adjustable='box')
-plt.savefig("GH_OIHP_all_wm.png", dpi=200)
-#plt.show()
-"""
-"""
-feat = np.load("GH_OIHP_all_wm.npy", allow_pickle=True)
-
-#selector = VarianceThreshold()
-#feat = selector.fit_transform(feat)
-#print(feat)
-print(np.shape(feat))
-#savemat("GH_feat.mat", {'fdata': feat})
-
-feat2 = []
-for i in range(len(feat)):
-    tmp = []
-    for j in range(0, 360, 40):
-        tmp.append(np.min(feat[i][j:j+40]))
-        tmp.append(np.max(feat[i][j:j+40]))
-        tmp.append(np.mean(feat[i][j:j+40]))
-        tmp.append(np.std(feat[i][j:j+40]))
-    for j in range(0, 360, 120):
-        tmp.append(np.min(feat[i][j:j+120]))
-        tmp.append(np.max(feat[i][j:j+120]))
-        tmp.append(np.mean(feat[i][j:j+120]))
-        tmp.append(np.std(feat[i][j:j+120]))
-    feat2.append(tmp)
-
-feat = np.array(feat2)
-#print(type(feat[0]))
-
-
-frd = 10
-frs = 40 + 10
-
-#values = PCA(n_components=2).fit_transform(feat)
-#print(values.explained_variance_ratio_)
-values = TSNE(n_components=2, verbose=2).fit_transform(feat)
-
-#values = umap.UMAP(random_state=42).fit_transform(feat)
-plt.figure(figsize=(5,5), dpi=200)
-mpl.rcParams['axes.spines.right'] = False
-mpl.rcParams['axes.spines.top'] = False
-
-plt.scatter(values[:(frs-frd),0], values[:(frs-frd),1], marker='.', color='tab:blue', alpha=0.75, linewidth=.5, s=20, label="Br-Cubic")
-plt.scatter(values[(frs-frd):2*(frs-frd),0], values[(frs-frd):2*(frs-frd),1], marker='.', color='tab:orange', alpha=0.75,  linewidth=0.5, s=20, label="Br-Ortho")
-plt.scatter(values[2*(frs-frd):3*(frs-frd),0], values[2*(frs-frd):3*(frs-frd),1], marker='.', color='tab:green', alpha=0.75,  linewidth=0.5, s=20, label="Br-Tetra")
-
-plt.scatter(values[3*(frs-frd):4*(frs-frd),0], values[3*(frs-frd):4*(frs-frd),1], marker='.', color='tab:red', alpha=0.75,  linewidth=0.5, s=20, label="Cl-Cubic")
-plt.scatter(values[4*(frs-frd):5*(frs-frd),0], values[4*(frs-frd):5*(frs-frd),1], marker='.', color='tab:purple', alpha=0.75,  linewidth=0.5, s=20, label="Cl-Ortho")
-plt.scatter(values[5*(frs-frd):6*(frs-frd),0], values[5*(frs-frd):6*(frs-frd),1], marker='.', color='tab:brown', alpha=0.75,  linewidth=0.5, s=20, label="Cl-Tetra")
-
-plt.scatter(values[6*(frs-frd):7*(frs-frd),0], values[6*(frs-frd):7*(frs-frd),1],  marker='.',color='tab:pink', alpha=0.75,  linewidth=0.5, s=20, label="I-Cubic")
-plt.scatter(values[7*(frs-frd):8*(frs-frd),0], values[7*(frs-frd):8*(frs-frd),1],  marker='.',color='tab:gray', alpha=0.75,  linewidth=0.5, s=20, label="I-Ortho")
-plt.scatter(values[8*(frs-frd):9*(frs-frd),0], values[8*(frs-frd):9*(frs-frd),1],  marker='.',color='tab:olive', alpha=0.75,  linewidth=0.5, s=20, label="I-Tetra")
-
-#plt.ylim(np.min(values[:, 1])-10, np.max(values[:,1])+50)
-#plt.xlim(-100, 100)
-#plt.legend(ncol=3, loc='upper left', handlelength=.5, borderpad=.25, fontsize=10)
-plt.axis('equal')
-plt.xticks([])
-plt.yticks([])
-plt.savefig("tsne_stats_40_9types_wm.png", dpi=200)
-#plt.show()
+    #build_wm_multiprocessing()
+    #build_uGH()
+    cluster_wm(ncluster = 9)

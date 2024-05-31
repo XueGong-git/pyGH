@@ -248,45 +248,20 @@ def cal_uGH_matrix():
     np.save("GH_OIHP_all_l1norms2.npy", mat)
     
     
-def cluster(ncluster):
+def cluster_l1(ncluster):
     
-    mat = np.load("GH_OIHP_all_l1norms2.npy", allow_pickle=True)
-    #mat = np.tril(mat) + np.transpose(np.tril(mat))
-    np.save("GH_OIHP_all_l1norms2.npy", mat)
+    mat = np.load("GH_OIHP_all_l1norms.npy", allow_pickle=True)
     
-    plt.figure(dpi=100)
-    plt.rcdefaults()
-    ax = plt.gca()
-    #plt.xticks([0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20], ["0.1", "0.3", "0.5", "0.7", "0.9", "1.1", "1.3", "1.5", "1.7", "1.9", "2.0"])
-    #plt.yticks([0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20], ["0.1", "0.3", "0.5", "0.7", "0.9", "1.1", "1.3", "1.5", "1.7", "1.9", "2.0"])
-    #plt.xticks(range(0, 24, 4), [str(i) for i in np.arange(3, 9, 1)])
-    #plt.yticks(range(0, 24, 4), [str(i) for i in np.arange(3, 9, 1)])
-    #cmap = mpl.cm.get_cmap("coolwarm").copy()
-    #cmap.set_under(color='white')
+    # plot mat as heat map and save mimage
+    plt.imshow(mat, cmap='coolwarm', interpolation='nearest')
+    plt.colorbar()  # Add a colorbar to show the scale
+    plt.savefig('uGH_l1.png', dpi=300, bbox_inches='tight')  # Save the figure with high resolution
+    plt.show()  # Display the plot
     
-    im = ax.imshow(mat, cmap="coolwarm")
-    # Minor ticks
-    #ax.set_xticks(np.arange(-.5, 9, 1), minor=True)
-    #ax.set_yticks(np.arange(-.5, 9, 1), minor=True)
-    
-    # Gridlines based on minor ticks
-    #ax.grid(which='minor', color='k', linestyle='-', linewidth=1.2)
-    divider = make_axes_locatable(ax)
-    cax = divider.append_axes("right", size="5%", pad=0.05)
-    plt.colorbar(im, cax=cax)
-    ax.set_aspect('equal', adjustable='box')
-    plt.savefig("GH_OIHP_all_l1norms2.png", dpi=200)
-    #plt.show()
+   
     
     
-    feat = np.load("GH_OIHP_all_l1norms2.npy", allow_pickle=True)
-    
-    #selector = VarianceThreshold()
-    #feat = selector.fit_transform(feat)
-    #print(feat)
-    print(np.shape(feat))
-    #savemat("GH_feat.mat", {'fdata': feat})
-    
+    feat = mat
     
     
     """
@@ -316,67 +291,68 @@ def cluster(ncluster):
     print("Cluster labels:", cluster_labels)
     """
     
-    feat2 = []
-    for i in range(len(feat)):
-        tmp = []
-        if ncluster == 9:
-            for j in range(0, 360, 40):
-                tmp.append(np.min(feat[i][j:j+40]))
+    
+    #feat2 = []
+    #for i in range(len(feat)):
+    #    tmp = []
+    #    if ncluster == 9:
+    #        for j in range(0, 360, 40):
+    #            tmp.append(np.min(feat[i][j:j+40]))
                 #tmp.append(np.max(feat[i][j:j+40]))
                 #tmp.append(np.mean(feat[i][j:j+40]))
                 #tmp.append(np.std(feat[i][j:j+40]))
-        elif ncluster == 4:
-            for j in range(0, 360, 120):
-                tmp.append(np.min(feat[i][j:j+120]))
-                tmp.append(np.max(feat[i][j:j+120]))
-                tmp.append(np.mean(feat[i][j:j+120]))
-                tmp.append(np.std(feat[i][j:j+120]))
-        feat2.append(tmp)
+    #    elif ncluster == 4:
+    #        for j in range(0, 360, 120):
+    #            tmp.append(np.min(feat[i][j:j+120]))
+    #            tmp.append(np.max(feat[i][j:j+120]))
+    #            tmp.append(np.mean(feat[i][j:j+120]))
+    #            tmp.append(np.std(feat[i][j:j+120]))
+    #    feat2.append(tmp)
     
-    feat = np.array(feat2)
+    #feat = np.array(feat2)
     #print(type(feat[0]))
     
-    sns.heatmap(feat, cmap='viridis', annot=False)
-    plt.show()
-    
-    sns.heatmap(feat2, cmap='viridis', annot=False)
-    plt.show()
-    
     frd = 10
-    frs = 40 + 10
+    frs = 360//ncluster + 10
     
     #values = PCA(n_components=2).fit_transform(feat)
     #print(values.explained_variance_ratio_)
-    values = TSNE(n_components=2, verbose=2).fit_transform(feat)
+    values = TSNE(n_components=2, verbose=2, perplexity= 20, random_state=40,  metric='jaccard').fit_transform(feat)
     
     #values = umap.UMAP(random_state=42).fit_transform(feat)
     plt.figure(figsize=(5,5), dpi=200)
     mpl.rcParams['axes.spines.right'] = False
     mpl.rcParams['axes.spines.top'] = False
     
-    plt.scatter(values[:(frs-frd),0], values[:(frs-frd),1], marker='.', color='tab:blue', alpha=0.75, linewidth=.5, s=20, label="Br-Cubic")
-    plt.scatter(values[(frs-frd):2*(frs-frd),0], values[(frs-frd):2*(frs-frd),1], marker='.', color='tab:orange', alpha=0.75,  linewidth=0.5, s=20, label="Br-Ortho")
-    plt.scatter(values[2*(frs-frd):3*(frs-frd),0], values[2*(frs-frd):3*(frs-frd),1], marker='.', color='tab:green', alpha=0.75,  linewidth=0.5, s=20, label="Br-Tetra")
+    if ncluster == 9:
+        plt.scatter(values[:(frs-frd),0], values[:(frs-frd),1], marker='.', color='tab:blue', alpha=0.75, linewidth=.5, s=20, label="Br-Cubic")
+        plt.scatter(values[(frs-frd):2*(frs-frd),0], values[(frs-frd):2*(frs-frd),1], marker='.', color='tab:orange', alpha=0.75,  linewidth=0.5, s=20, label="Br-Ortho")
+        plt.scatter(values[2*(frs-frd):3*(frs-frd),0], values[2*(frs-frd):3*(frs-frd),1], marker='.', color='tab:green', alpha=0.75,  linewidth=0.5, s=20, label="Br-Tetra")
+        
+        plt.scatter(values[3*(frs-frd):4*(frs-frd),0], values[3*(frs-frd):4*(frs-frd),1], marker='.', color='tab:red', alpha=0.75,  linewidth=0.5, s=20, label="Cl-Cubic")
+        plt.scatter(values[4*(frs-frd):5*(frs-frd),0], values[4*(frs-frd):5*(frs-frd),1], marker='.', color='tab:purple', alpha=0.75,  linewidth=0.5, s=20, label="Cl-Ortho")
+        plt.scatter(values[5*(frs-frd):6*(frs-frd),0], values[5*(frs-frd):6*(frs-frd),1], marker='.', color='tab:brown', alpha=0.75,  linewidth=0.5, s=20, label="Cl-Tetra")
+        
+        plt.scatter(values[6*(frs-frd):7*(frs-frd),0], values[6*(frs-frd):7*(frs-frd),1],  marker='.',color='tab:pink', alpha=0.75,  linewidth=0.5, s=20, label="I-Cubic")
+        plt.scatter(values[7*(frs-frd):8*(frs-frd),0], values[7*(frs-frd):8*(frs-frd),1],  marker='.',color='tab:gray', alpha=0.75,  linewidth=0.5, s=20, label="I-Ortho")
+        plt.scatter(values[8*(frs-frd):9*(frs-frd),0], values[8*(frs-frd):9*(frs-frd),1],  marker='.',color='tab:olive', alpha=0.75,  linewidth=0.5, s=20, label="I-Tetra")
     
-    plt.scatter(values[3*(frs-frd):4*(frs-frd),0], values[3*(frs-frd):4*(frs-frd),1], marker='.', color='tab:red', alpha=0.75,  linewidth=0.5, s=20, label="Cl-Cubic")
-    plt.scatter(values[4*(frs-frd):5*(frs-frd),0], values[4*(frs-frd):5*(frs-frd),1], marker='.', color='tab:purple', alpha=0.75,  linewidth=0.5, s=20, label="Cl-Ortho")
-    plt.scatter(values[5*(frs-frd):6*(frs-frd),0], values[5*(frs-frd):6*(frs-frd),1], marker='.', color='tab:brown', alpha=0.75,  linewidth=0.5, s=20, label="Cl-Tetra")
-    
-    plt.scatter(values[6*(frs-frd):7*(frs-frd),0], values[6*(frs-frd):7*(frs-frd),1],  marker='.',color='tab:pink', alpha=0.75,  linewidth=0.5, s=20, label="I-Cubic")
-    plt.scatter(values[7*(frs-frd):8*(frs-frd),0], values[7*(frs-frd):8*(frs-frd),1],  marker='.',color='tab:gray', alpha=0.75,  linewidth=0.5, s=20, label="I-Ortho")
-    plt.scatter(values[8*(frs-frd):9*(frs-frd),0], values[8*(frs-frd):9*(frs-frd),1],  marker='.',color='tab:olive', alpha=0.75,  linewidth=0.5, s=20, label="I-Tetra")
-    
+    elif ncluster == 3:
+        plt.scatter(values[:(frs-frd),0], values[:(frs-frd),1], marker='.', color='tab:blue', alpha=0.75, linewidth=.5, s=20, label="Br")
+        plt.scatter(values[(frs-frd):2*(frs-frd),0], values[(frs-frd):2*(frs-frd),1], marker='.', color='tab:orange', alpha=0.75,  linewidth=0.5, s=20, label="Cl")
+        plt.scatter(values[2*(frs-frd):3*(frs-frd),0], values[2*(frs-frd):3*(frs-frd),1], marker='.', color='tab:green', alpha=0.75,  linewidth=0.5, s=20, label="I")
+   
     #plt.ylim(np.min(values[:, 1])-10, np.max(values[:,1])+50)
     #plt.xlim(-100, 100)
     plt.legend(ncol=3, loc='upper left', handlelength=.5, borderpad=.25, fontsize=10)
     plt.axis('equal')
     plt.xticks([])
     plt.yticks([])
-    #plt.savefig("tsne_stats_40_l1norms2.png", dpi=200)
+    plt.savefig(f"tsne_l1norms_{ncluster}_clusters.png", dpi=200)
     plt.show()
 
 
 if __name__ == '__main__':
     #calDis()  # calculate distance matrix for each structure and save data, takes ~ 3 min
     #cal_uGH_matrix() # calculate pairwise uGH between structures and save the matrix
-    cluster(ncluster = 4) # cluster data according to uGH matrix
+    cluster_l1(ncluster = 3) # cluster data according to uGH matrix

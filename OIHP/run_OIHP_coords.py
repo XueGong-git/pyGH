@@ -76,50 +76,88 @@ def convertpdb(filename):
     a = {'PRO': [{'atom': atomName, 'typ': element, 'pos': np.transpose([X,Y,Z])}]}
     np.savez(filename[:-4]+".npz", **a)
 
-coords = []
-flist = glob.glob('./data/*f9[6-9][0-9].txt')
-flist = sorted(flist)
-for ll in range(len(flist)):
-    print(flist[ll])
-    file = open(flist[ll])
-    contents = file.readlines()
-    for i in range(len(contents)):
-        contents[i] = contents[i].rstrip("\n").split(",")
-        contents[i] = [float(s) for s in contents[i]]
+def cluster_coords(ncluster = None):
+
+    coords = []
+    flist = glob.glob('./data/*f9[6-9][0-9].txt')
+    flist = sorted(flist)
+    for ll in range(len(flist)):
+        print(flist[ll])
+        file = open(flist[ll])
+        contents = file.readlines()
+        for i in range(len(contents)):
+            contents[i] = contents[i].rstrip("\n").split(",")
+            contents[i] = [float(s) for s in contents[i]]
+        
+        coords.append(np.reshape(contents, (len(contents)*3,)))
     
-    coords.append(np.reshape(contents, (len(contents)*3,)))
+    
+    plt.imshow(coords, cmap='coolwarm', interpolation='nearest')
+    plt.colorbar()  # Add a colorbar to show the scale
+    plt.savefig('coords.png', dpi=300, bbox_inches='tight')  # Save the figure with high resolution
+    plt.show()  # Display the plot
 
-print(np.shape(coords))
+    
+    #feat2 = []
+    #for i in range(len(coords)):
+    #    tmp = []
+    #    if ncluster == 9:
+    #        for j in range(0, 360, 40):
+    #            tmp.append(np.min(coords[j:j+40]))
+    #            tmp.append(np.max(coords[j:j+40]))
+    #            tmp.append(np.mean(coords[j:j+40]))
+    #            tmp.append(np.std(coords[j:j+40]))
+    #    elif ncluster == 4:
+    #        for j in range(0, 360, 120):
+    #            tmp.append(np.min(feat[i][j:j+120]))
+    #            tmp.append(np.max(feat[i][j:j+120]))
+    #            tmp.append(np.mean(feat[i][j:j+120]))
+    #            tmp.append(np.std(feat[i][j:j+120]))
+    #    feat2.append(tmp)
+    
+    #coords = np.array(feat2)
+    
+    frd = 10
+    frs = 40 + 10
+    
+    #values = PCA(n_components=2).fit_transform(feat)
+    #print(values.explained_variance_ratio_)
+    values = TSNE(n_components=2, verbose=2).fit_transform(np.array(coords))
+    
+    #values = umap.UMAP(random_state=42).fit_transform(feat)
+    plt.figure(figsize=(5,5), dpi=200)
+    mpl.rcParams['axes.spines.right'] = False
+    mpl.rcParams['axes.spines.top'] = False
+    
+    if ncluster == 9:
+        plt.scatter(values[:(frs-frd),0], values[:(frs-frd),1], marker='.', color='tab:blue', alpha=0.75, linewidth=.5, s=20, label="Br-Cubic")
+        plt.scatter(values[(frs-frd):2*(frs-frd),0], values[(frs-frd):2*(frs-frd),1], marker='.', color='tab:orange', alpha=0.75,  linewidth=0.5, s=20, label="Br-Ortho")
+        plt.scatter(values[2*(frs-frd):3*(frs-frd),0], values[2*(frs-frd):3*(frs-frd),1], marker='.', color='tab:green', alpha=0.75,  linewidth=0.5, s=20, label="Br-Tetra")
+        
+        plt.scatter(values[3*(frs-frd):4*(frs-frd),0], values[3*(frs-frd):4*(frs-frd),1], marker='.', color='tab:red', alpha=0.75,  linewidth=0.5, s=20, label="Cl-Cubic")
+        plt.scatter(values[4*(frs-frd):5*(frs-frd),0], values[4*(frs-frd):5*(frs-frd),1], marker='.', color='tab:purple', alpha=0.75,  linewidth=0.5, s=20, label="Cl-Ortho")
+        plt.scatter(values[5*(frs-frd):6*(frs-frd),0], values[5*(frs-frd):6*(frs-frd),1], marker='.', color='tab:brown', alpha=0.75,  linewidth=0.5, s=20, label="Cl-Tetra")
+    
+        plt.scatter(values[6*(frs-frd):7*(frs-frd),0], values[6*(frs-frd):7*(frs-frd),1],  marker='.',color='tab:pink', alpha=0.75,  linewidth=0.5, s=20, label="I-Cubic")
+        plt.scatter(values[7*(frs-frd):8*(frs-frd),0], values[7*(frs-frd):8*(frs-frd),1],  marker='.',color='tab:gray', alpha=0.75,  linewidth=0.5, s=20, label="I-Ortho")
+        plt.scatter(values[8*(frs-frd):9*(frs-frd),0], values[8*(frs-frd):9*(frs-frd),1],  marker='.',color='tab:olive', alpha=0.75,  linewidth=0.5, s=20, label="I-Tetra")
 
-frd = 10
-frs = 40 + 10
+    if ncluster == 3:
+        plt.scatter(values[:(frs-frd),0], values[:(frs-frd),1], marker='.', color='tab:blue', alpha=0.75, linewidth=.5, s=20, label="Br")
+        plt.scatter(values[(frs-frd):2*(frs-frd),0], values[(frs-frd):2*(frs-frd),1], marker='.', color='tab:orange', alpha=0.75,  linewidth=0.5, s=20, label="Cl")
+        plt.scatter(values[2*(frs-frd):3*(frs-frd),0], values[2*(frs-frd):3*(frs-frd),1], marker='.', color='tab:green', alpha=0.75,  linewidth=0.5, s=20, label="I")
+   
+        
+    #plt.ylim(np.min(values[:, 1])-10, np.max(values[:,1])+50)
+    #plt.xlim(-100, 100)
+    #plt.legend(ncol=3, loc='upper left', handlelength=.5, borderpad=.25, fontsize=10)
+    plt.axis('equal')
+    plt.xticks([])
+    plt.yticks([])
+    plt.savefig(f"tsne_coords_{ncluster}_clusters.png", dpi=200)
+    #plt.show()
 
-#values = PCA(n_components=2).fit_transform(feat)
-#print(values.explained_variance_ratio_)
-values = TSNE(n_components=2, verbose=2).fit_transform(np.array(coords))
-
-#values = umap.UMAP(random_state=42).fit_transform(feat)
-plt.figure(figsize=(5,5), dpi=200)
-mpl.rcParams['axes.spines.right'] = False
-mpl.rcParams['axes.spines.top'] = False
-
-plt.scatter(values[:(frs-frd),0], values[:(frs-frd),1], marker='.', color='tab:blue', alpha=0.75, linewidth=.5, s=20, label="Br-Cubic")
-plt.scatter(values[(frs-frd):2*(frs-frd),0], values[(frs-frd):2*(frs-frd),1], marker='.', color='tab:orange', alpha=0.75,  linewidth=0.5, s=20, label="Br-Ortho")
-plt.scatter(values[2*(frs-frd):3*(frs-frd),0], values[2*(frs-frd):3*(frs-frd),1], marker='.', color='tab:green', alpha=0.75,  linewidth=0.5, s=20, label="Br-Tetra")
-
-plt.scatter(values[3*(frs-frd):4*(frs-frd),0], values[3*(frs-frd):4*(frs-frd),1], marker='.', color='tab:red', alpha=0.75,  linewidth=0.5, s=20, label="Cl-Cubic")
-plt.scatter(values[4*(frs-frd):5*(frs-frd),0], values[4*(frs-frd):5*(frs-frd),1], marker='.', color='tab:purple', alpha=0.75,  linewidth=0.5, s=20, label="Cl-Ortho")
-plt.scatter(values[5*(frs-frd):6*(frs-frd),0], values[5*(frs-frd):6*(frs-frd),1], marker='.', color='tab:brown', alpha=0.75,  linewidth=0.5, s=20, label="Cl-Tetra")
-
-plt.scatter(values[6*(frs-frd):7*(frs-frd),0], values[6*(frs-frd):7*(frs-frd),1],  marker='.',color='tab:pink', alpha=0.75,  linewidth=0.5, s=20, label="I-Cubic")
-plt.scatter(values[7*(frs-frd):8*(frs-frd),0], values[7*(frs-frd):8*(frs-frd),1],  marker='.',color='tab:gray', alpha=0.75,  linewidth=0.5, s=20, label="I-Ortho")
-plt.scatter(values[8*(frs-frd):9*(frs-frd),0], values[8*(frs-frd):9*(frs-frd),1],  marker='.',color='tab:olive', alpha=0.75,  linewidth=0.5, s=20, label="I-Tetra")
-
-#plt.ylim(np.min(values[:, 1])-10, np.max(values[:,1])+50)
-#plt.xlim(-100, 100)
-#plt.legend(ncol=3, loc='upper left', handlelength=.5, borderpad=.25, fontsize=10)
-plt.axis('equal')
-plt.xticks([])
-plt.yticks([])
-plt.savefig("tsne_9types_coords.png", dpi=200)
-#plt.show()
+if __name__ == '__main__':
+    #build_wm_multiprocessing()
+    #build_uGH()
+    cluster_coords(ncluster = 9)
