@@ -151,6 +151,7 @@ def cluster_coords(ncluster = None):
     #plt.ylim(np.min(values[:, 1])-10, np.max(values[:,1])+50)
     #plt.xlim(-100, 100)
     #plt.legend(ncol=3, loc='upper left', handlelength=.5, borderpad=.25, fontsize=10)
+    
     plt.axis('equal')
     plt.xticks([])
     plt.yticks([])
@@ -160,4 +161,4 @@ def cluster_coords(ncluster = None):
 if __name__ == '__main__':
     #build_wm_multiprocessing()
     #build_uGH()
-    cluster_coords(ncluster = 9)
+    cluster_coords(ncluster = 3)

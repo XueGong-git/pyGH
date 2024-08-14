@@ -335,14 +335,21 @@ def cluster_wm(ncluster = None):
         plt.scatter(values[7*(frs-frd):8*(frs-frd),0], values[7*(frs-frd):8*(frs-frd),1],  marker='.',color='tab:gray', alpha=0.75,  linewidth=0.5, s=20, label="I-Ortho")
         plt.scatter(values[8*(frs-frd):9*(frs-frd),0], values[8*(frs-frd):9*(frs-frd),1],  marker='.',color='tab:olive', alpha=0.75,  linewidth=0.5, s=20, label="I-Tetra")
         
-        #plt.ylim(np.min(values[:, 1])-10, np.max(values[:,1])+50)
-        #plt.xlim(-100, 100)
-        #plt.legend(ncol=3, loc='upper left', handlelength=.5, borderpad=.25, fontsize=10)
-        plt.axis('equal')
-        plt.xticks([])
-        plt.yticks([])
-        plt.savefig("tsne_stats_40_9types_wm.png", dpi=200)
-        #plt.show()
+    if ncluster == 3:
+        plt.scatter(values[:(frs-frd),0], values[:(frs-frd),1], marker='.', color='tab:blue', alpha=0.75, linewidth=.5, s=20, label="Br")
+        plt.scatter(values[(frs-frd):2*(frs-frd),0], values[(frs-frd):2*(frs-frd),1], marker='.', color='tab:orange', alpha=0.75,  linewidth=0.5, s=20, label="Cl")
+        plt.scatter(values[2*(frs-frd):3*(frs-frd),0], values[2*(frs-frd):3*(frs-frd),1], marker='.', color='tab:green', alpha=0.75,  linewidth=0.5, s=20, label="I")
+       
+            
+        
+    #plt.ylim(np.min(values[:, 1])-10, np.max(values[:,1])+50)
+    #plt.xlim(-100, 100)
+    #plt.legend(ncol=3, loc='upper left', handlelength=.5, borderpad=.25, fontsize=10)
+    plt.axis('equal')
+    plt.xticks([])
+    plt.yticks([])
+    plt.savefig("tsne_stats_40_9types_wm.png", dpi=200)
+    #plt.show()
 
 if __name__ == '__main__':
     #build_wm_multiprocessing()

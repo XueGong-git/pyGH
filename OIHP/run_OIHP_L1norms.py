@@ -317,8 +317,9 @@ def cluster_l1(ncluster):
     
     #values = PCA(n_components=2).fit_transform(feat)
     #print(values.explained_variance_ratio_)
-    values = TSNE(n_components=2, verbose=2, perplexity= 20, random_state=40,  metric='jaccard').fit_transform(feat)
-    
+    #values = TSNE(n_components=2, verbose=2, perplexity= 20, random_state=40,  metric='jaccard').fit_transform(feat)
+    values = TSNE(n_components=2, verbose=2).fit_transform(feat)
+
     #values = umap.UMAP(random_state=42).fit_transform(feat)
     plt.figure(figsize=(5,5), dpi=200)
     mpl.rcParams['axes.spines.right'] = False

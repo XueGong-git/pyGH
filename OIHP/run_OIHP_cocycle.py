@@ -246,7 +246,7 @@ def cal_uGH_matrix():
     np.save("GH_OIHP_all_cocycle2.npy", mat)
     
     
-def cluster(ncluster):
+def cluster_cocycle(ncluster):
     mat = np.load("GH_OIHP_all_cocycle2.npy", allow_pickle=True)
     # plot mat as heat map and save mimage
     plt.imshow(mat, cmap='coolwarm', interpolation='nearest')
@@ -351,4 +351,4 @@ def cluster(ncluster):
 if __name__ == '__main__':
     #calDis()  # calculate distance matrix for each structure and save data
     #cal_uGH_matrix() # calculate pairwise uGH between structures and save the matrix
-    cluster(ncluster = 3) # cluster data according to uGH matrix
+    cluster_cocycle(ncluster = 3) # cluster data according to uGH matrix
