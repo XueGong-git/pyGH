@@ -381,22 +381,24 @@ def visualize_data(ll):
     # Example 3D point cloud
     
     # Create a Rips complex from the points, with a max edge length of 1.5
-    #rips_complex = gd.RipsComplex(points=points, max_edge_length=3.5)
-    #simplex_tree = rips_complex.create_simplex_tree(max_dimension=2)
-    
+    rips_complex = gd.RipsComplex(points=points, max_edge_length=4.5)
+    simplex_tree = rips_complex.create_simplex_tree(max_dimension=2)
+    edges = [simplex for simplex, _ in simplex_tree.get_skeleton(1) if len(simplex) == 2]
+    triangles = [simplex for simplex, _ in simplex_tree.get_skeleton(2) if len(simplex) == 3]
+
     
     # Alpha complex
-    alpha_complex = gd.AlphaComplex(points=points)
-    simplex_tree = alpha_complex.create_simplex_tree()
-    filtered_simplices = [ simplex for simplex in simplex_tree.get_filtration() if np.sqrt(simplex[1])*2 <= 3.5]
+    #alpha_complex = gd.AlphaComplex(points=points)
+    #simplex_tree = alpha_complex.create_simplex_tree()
+    #filtered_simplices = [ simplex for simplex in simplex_tree.get_filtration() if np.sqrt(simplex[1])*2 <= 3.5]
+    # Extract edges (1-simplices) and triangles
+    #edges = [simplex[0] for simplex in filtered_simplices if len(simplex[0]) == 2]
+    #triangles = [simplex[0] for simplex in filtered_simplices if len(simplex[0]) == 3]
 
     
     
     # visualize the simplicial complex
     
-    # Extract edges (1-simplices) and triangles
-    edges = [simplex[0] for simplex in filtered_simplices if len(simplex[0]) == 2]
-    triangles = [simplex[0] for simplex in filtered_simplices if len(simplex[0]) == 3]
 
     # Create scatter plot for points
     fig = plt.figure()
