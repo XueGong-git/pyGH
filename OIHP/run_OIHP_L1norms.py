@@ -29,6 +29,9 @@ from sklearn.decomposition import PCA, KernelPCA
 from sklearn.manifold import TSNE
 from sklearn.cluster import SpectralClustering
 import seaborn as sns
+import plotly.graph_objects as go
+from mpl_toolkits.mplot3d import Axes3D
+import os
 
 
 
@@ -208,7 +211,6 @@ def calDis():
         gnm = GHM(all_eigval, all_eigvec)
         np.save("./data/processed/" + flist[ll][7:-4]+"_gnm_l1norms2.npy", gnm)
 
-
 def cal_uGH_matrix():
 
     flist = glob.glob('./data/processed/*f9[6-9][0-9]_gnm_l1norms2.npy')
@@ -353,7 +355,118 @@ def cluster_l1(ncluster):
     plt.show()
 
 
+def visualize_data(ll):
+    # load coordinates
+    flist = glob.glob('./data/*f9[6-9][0-9].txt')
+    flist = sorted(flist)
+    
+    # open raw location file
+    coorfile = flist[ll]
+    file = open(coorfile)
+    points = file.readlines()
+    for i in range(len(points)):
+        points[i] = points[i].rstrip("\n").split(",")
+        points[i] = [float(s) for s in points[i]]    
+    
+    
+    # plot coordinates as 3D
+    
+    # Extracting x, y, z coordinates from the list
+    x_coords = [coord[0] for coord in points]
+    y_coords = [coord[1] for coord in points]
+    z_coords = [coord[2] for coord in points]
+    
+    
+    # construct simplicial complex
+    # Example 3D point cloud
+    
+    # Create a Rips complex from the points, with a max edge length of 1.5
+    #rips_complex = gd.RipsComplex(points=points, max_edge_length=3.5)
+    #simplex_tree = rips_complex.create_simplex_tree(max_dimension=2)
+    
+    
+    # Alpha complex
+    alpha_complex = gd.AlphaComplex(points=points)
+    simplex_tree = alpha_complex.create_simplex_tree()
+    filtered_simplices = [ simplex for simplex in simplex_tree.get_filtration() if np.sqrt(simplex[1])*2 <= 3.5]
+
+    
+    
+    # visualize the simplicial complex
+    
+    # Extract edges (1-simplices) and triangles
+    edges = [simplex[0] for simplex in filtered_simplices if len(simplex[0]) == 2]
+    triangles = [simplex[0] for simplex in filtered_simplices if len(simplex[0]) == 3]
+
+    # Create scatter plot for points
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    
+    # Plot the points
+    ax.scatter(x_coords, y_coords, z_coords, color='black', s=5, label='Points')
+    
+    # Plot the edges
+    for edge in edges:
+        ax.plot([x_coords[edge[0]], x_coords[edge[1]]], 
+                [y_coords[edge[0]], y_coords[edge[1]]], 
+                [z_coords[edge[0]], z_coords[edge[1]]], 'b-', linewidth=2)
+    
+    
+    if len(x_coords) >= 3:
+
+        for triangle in triangles:
+            tri_points = np.array([points[triangle[0]], points[triangle[1]], points[triangle[2]]])
+            ax.plot_trisurf(tri_points[:, 0], tri_points[:, 1], tri_points[:, 2], color='orange', alpha=0.5)
+
+
+
+    # Set labels for the axes
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+    
+    # Set a title
+    ax.set_title(flist[ll][7:-4])
+    
+    # Show the plot
+    #plt.savefig(".figure/" + flist[ll][7:-4]+"_alpha_simplex.png")
+    output_dir = 'figure'
+    output_path = os.path.join(output_dir, flist[ll][7:-4]+ ".png")
+    plt.savefig(output_path, dpi=150)
+    #plt.show()
+    plt.close()
+
+
 if __name__ == '__main__':
     #calDis()  # calculate distance matrix for each structure and save data, takes ~ 3 min
     #cal_uGH_matrix() # calculate pairwise uGH between structures and save the matrix
-    cluster_l1(ncluster = 3) # cluster data according to uGH matrix
+    #cluster_l1(ncluster = 3) # cluster data according to uGH matrix
+    
+    
+    
+    flist = glob.glob('./data/*f9[6-9][0-9].txt')
+    flist = sorted(flist)
+    
+    for ll in range(len(flist)):
+    #for ll in [4]:
+        visualize_data(ll)
+
+
+    
+    # load gnm matrix
+    #filename = "./data/processed/" + flist[ll][7:-4]+"_gnm_l1norms2.npy"
+    #print(filename)
+    # Load the .npy file
+    #gnm = np.load("./data/processed/" + flist[ll][7:-4]+"_gnm_l1norms2.npy")
+    
+    
+    # Plot the heatmap
+    #plt.imshow(gnm[0], cmap='hot', interpolation='nearest')
+    #plt.colorbar()  # Add a colorbar to the heatmap
+    #plt.title('Heatmap of the Data')
+    #plt.show()
+    
+    
+    
+    
+    
