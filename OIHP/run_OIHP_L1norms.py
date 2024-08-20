@@ -128,26 +128,27 @@ def GHM(all_eigval, all_eigvec):
         eigvec = all_eigvec[f]
         
         # eigenvectors are adjusted to ensure that the first element of each eigenvector is positive
-        col_idx = (eigvec[:, 0] < 0)   # find columns where the first elemet is zero
+        col_idx = (eigvec[0, :] < 0)   # find columns where the first elemet is zero
         eigvec[:, col_idx] = -  eigvec[:, col_idx] 
 
-        eigvec[np.abs(eigvec)<1e-3] = 0 # Zero the entries due to precision 
+        #eigvec[np.abs(eigvec)<1e-3] = 0 # Zero the entries due to precision 
         clean_eigvec.append(eigvec)
 
     gnm = []
     for f in range(len(all_eigval)):
         ll = list(np.where(all_eigval[f]<1e-3)[0]) #list(range(len(all_eigval[f])))#
         v1 = clean_eigvec[f][:, ll] 
+        print(str(len(ll)) + " independent cycles")
 
         dx = np.zeros((len(ll), len(ll))) # Harmonic Norm matrix for structure at f
         if len(v1) > 0:
             for i in range(len(dx)):
                 for j in range(0, i):
                     x1, x2 = v1[:, i], v1[:, j]
-                    dx[i, j] = np.sum(np.abs(x1-x2)) # L1 norm
+                    dx[i, j] = np.sum(np.abs(x1-x2)) # L1 distance
             dx += np.transpose(np.tril(dx))
         gnm.append(dx)
-    return gnm
+    return [gnm, v1]
 
 def _uGH(dist_mat, i, j):
     op = (i,j, uGH(dist_mat[i], dist_mat[j]))
@@ -155,8 +156,7 @@ def _uGH(dist_mat, i, j):
     return op
 
 ### Compute simplicial complices and eigenvalues, save eigenvalues and eigen vectors to npy file
-
-def calDis():
+def buildSC():
     flist = glob.glob('./data/*f9[6-9][0-9].txt')
     flist = sorted(flist)
     for ll in range(len(flist)):
@@ -166,50 +166,56 @@ def calDis():
         for i in range(len(contents)):
             contents[i] = contents[i].rstrip("\n").split(",")
             contents[i] = [float(s) for s in contents[i]]
-            
+        
+        # Removing redundant rows
+        points_unique = []
+        for point in contents:
+            if point not in points_unique:
+                points_unique.append(point)
+        contents = points_unique
+        
         all_eigval, all_eigvec, all_graphs = [], [], []
         all_ex, all_vx = [], []
+        
         #all_eigval, all_eigvec = [], []
         #rc = gd.AlphaComplex(coords)
         #simplex_tree = rc.create_simplex_tree()
         #val = list(simplex_tree.get_filtration())
         #print(val)
-        alpha = gd.AlphaComplex(contents)
-        st = alpha.create_simplex_tree()
+        #alpha = gd.AlphaComplex(contents)
+        #st = alpha.create_simplex_tree()
+        
+        rips_complex = gd.RipsComplex(points=contents, max_edge_length=4.3)
+        st = rips_complex.create_simplex_tree(max_dimension=2)
         val = list(st.get_filtration())
-        for f in [3.5]:#np.arange(3, 10, 1):
-            print(flist[ll], f)
-            simplices = set()
-            for v in val:
-                if np.sqrt(v[1])*2 <= f:
-                    simplices.add(tuple(v[0]))
-    
-            #edge_idx = list(n_faces(simplices,1))
-            #vert_idx = list(n_faces(simplices,0))
-            #all_ex.append(edge_idx)
-            #all_vx.append(vert_idx)
-            #G = nx.Graph()
-            #for i in range(len(vert_idx)):
-                #G.add_node((i))
-            #for (x,y) in edge_idx:
-                #G.add_edge(x,y)
-            #all_graphs.append(G)
-            #print(edge_idx, G.edges())
-            #nx.draw(G, with_labels=True)
-            #laplacian = np.matmul(boundary_operator(simplices, 1).toarray(), np.transpose(boundary_operator(simplices, 1).toarray()))
-            laplacian = np.matmul(boundary_operator(simplices, 2).toarray(), np.transpose(boundary_operator(simplices, 2).toarray()))+np.matmul(np.transpose(boundary_operator(simplices, 1).toarray()), boundary_operator(simplices, 1).toarray())
-            #laplacian = np.matmul(boundary_operator(simplices, 3).toarray(), np.transpose(boundary_operator(simplices, 3).toarray()))+np.matmul(np.transpose(boundary_operator(simplices, 2).toarray()), boundary_operator(simplices, 2).toarray())
-            eigval, eigvec = np.linalg.eigh(laplacian)
-            #u, s, vh = np.linalg.svd(laplacian)
-            #eigval = s*s
-            #eigvec = np.transpose(vh)
-            #print(eigval)
-            all_eigval.append(eigval)
-            all_eigvec.append(eigvec)
-        all_sx = [all_vx, all_ex]
+        
+        # Extract only the simplices (without filtration values) if you need just the simplices
+
+        
+        #for f in [3.5]:#np.arange(3, 10, 1):
+            #print(flist[ll], f)
+        simplices = set()
+        for v in val:
+            #    if np.sqrt(v[1])*2 <= f:
+            simplices.add(tuple(v[0]))
+         
+        laplacian = np.matmul(boundary_operator(simplices, 2).toarray(), np.transpose(boundary_operator(simplices, 2).toarray()))+np.matmul(np.transpose(boundary_operator(simplices, 1).toarray()), boundary_operator(simplices, 1).toarray())
+        eigval, eigvec = np.linalg.eigh(laplacian)
+        all_eigval.append(eigval)
+        all_eigvec.append(eigvec)
         #h1 = nx.cycle_basis(G)
-        gnm = GHM(all_eigval, all_eigvec)
-        np.save("./data/processed/" + flist[ll][7:-4]+"_gnm_l1norms2.npy", gnm)
+        np.save("./data/processed/" + flist[ll][7:-4]+"_eigval.npy", eigval)
+        np.save("./data/processed/" + flist[ll][7:-4]+"_eigvec.npy", eigvec)
+
+def calDis():
+     flist = glob.glob('./data/*f9[6-9][0-9].txt')
+     flist = sorted(flist)
+     for ll in range(len(flist)):
+         all_eigval = np.load("./data/processed/" + flist[ll][7:-4]+"_eigval.npy")
+         all_eigvec = np.load("./data/processed/" + flist[ll][7:-4]+"_eigvec.npy")        
+         gnm, v1 = GHM(all_eigval, all_eigvec)
+         np.save("./data/processed/" + flist[ll][7:-4]+"_gnm_l1norms2.npy", gnm)
+         np.save("./data/processed/" + flist[ll][7:-4]+"_cleanvec.npy", v1)
 
 def cal_uGH_matrix():
 
@@ -252,7 +258,7 @@ def cal_uGH_matrix():
     
 def cluster_l1(ncluster):
     
-    mat = np.load("GH_OIHP_all_l1norms.npy", allow_pickle=True)
+    mat = np.load("GH_OIHP_all_l1norms2.npy", allow_pickle=True)
     
     # plot mat as heat map and save mimage
     plt.imshow(mat, cmap='coolwarm', interpolation='nearest')
@@ -368,7 +374,13 @@ def visualize_data(ll):
         points[i] = points[i].rstrip("\n").split(",")
         points[i] = [float(s) for s in points[i]]    
     
+    # Removing redundant rows
+    points_unique = []
+    for point in points:
+        if point not in points_unique:
+            points_unique.append(point)
     
+    points = points_unique
     # plot coordinates as 3D
     
     # Extracting x, y, z coordinates from the list
@@ -381,11 +393,11 @@ def visualize_data(ll):
     # Example 3D point cloud
     
     # Create a Rips complex from the points, with a max edge length of 1.5
-    rips_complex = gd.RipsComplex(points=points, max_edge_length=4.5)
+    rips_complex = gd.RipsComplex(points=points, max_edge_length=4.3)
     simplex_tree = rips_complex.create_simplex_tree(max_dimension=2)
     edges = [simplex for simplex, _ in simplex_tree.get_skeleton(1) if len(simplex) == 2]
     triangles = [simplex for simplex, _ in simplex_tree.get_skeleton(2) if len(simplex) == 3]
-
+    print(str(len(edges)) + " edges and " + str(len(triangles)) + " triangles")
     
     # Alpha complex
     #alpha_complex = gd.AlphaComplex(points=points)
@@ -435,33 +447,39 @@ def visualize_data(ll):
     output_dir = 'figure'
     output_path = os.path.join(output_dir, flist[ll][7:-4]+ ".png")
     plt.savefig(output_path, dpi=150)
-    #plt.show()
+    plt.show()
     plt.close()
 
 
 if __name__ == '__main__':
-    #calDis()  # calculate distance matrix for each structure and save data, takes ~ 3 min
-    #cal_uGH_matrix() # calculate pairwise uGH between structures and save the matrix
-    #cluster_l1(ncluster = 3) # cluster data according to uGH matrix
+    buildSC() # build simplicial complex; compute eigenvalues and eigenvectors
+    # calDis()  # calculate distance matrix for each structure and save data, takes ~ 3 min
+    # cal_uGH_matrix() # calculate pairwise uGH between structures and save the matrix
+    # cluster_l1(ncluster = 3) # cluster data according to uGH matrix
     
-    
+    ll = 50
     
     flist = glob.glob('./data/*f9[6-9][0-9].txt')
     flist = sorted(flist)
     
-    for ll in range(len(flist)):
+    #for ll in range(len(flist)):
     #for ll in [4]:
-        visualize_data(ll)
+    #    print(ll)
+    visualize_data(ll)
 
 
-    
     # load gnm matrix
-    #filename = "./data/processed/" + flist[ll][7:-4]+"_gnm_l1norms2.npy"
+    filename = "./data/processed/" + flist[ll][7:-4]+"_gnm_l1norms2.npy"
     #print(filename)
     # Load the .npy file
-    #gnm = np.load("./data/processed/" + flist[ll][7:-4]+"_gnm_l1norms2.npy")
+    gnm = np.load(filename)
     
-    
+    eigval = np.load("./data/processed/" + flist[ll][7:-4]+"_eigval.npy")
+    eigvec = np.load("./data/processed/" + flist[ll][7:-4]+"_eigvec.npy")
+    cleanvec =  np.load("./data/processed/" + flist[ll][7:-4]+"_cleanvec.npy")
+    print(str(cleanvec.shape[1])+" independent cycles")
+    print(np.sum(np.abs(cleanvec[:, 1]-cleanvec[:, 2])))
+
     # Plot the heatmap
     #plt.imshow(gnm[0], cmap='hot', interpolation='nearest')
     #plt.colorbar()  # Add a colorbar to the heatmap

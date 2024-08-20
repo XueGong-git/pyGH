@@ -176,8 +176,7 @@ def build_wm(flist):
             if np.sqrt(v[1])*2 <= f:
                 simplices.add(tuple(v[0]))
 
-        #edge_idx = list(n_faces(simplices,1))
-        #vert_idx = list(n_faces(simplices,0))
+
         edges = list(n_faces(simplices,1))
         pts = np.array(contents)
         M = np.zeros((len(edges), len(edges)))

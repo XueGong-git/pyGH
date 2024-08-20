@@ -122,10 +122,10 @@ def GHM(all_eigval, all_eigvec):
         eigvec = all_eigvec[f]
 
         # eigenvectors are adjusted to ensure that the first element of each eigenvector is positive
-        col_idx = (eigvec[:, 0] < 0)   # find columns where the first elemet is zero
+        col_idx = (eigvec[0, :] < 0)   # find columns where the first elemet is zero
         eigvec[:, col_idx] = -  eigvec[:, col_idx] 
 
-        eigvec[np.abs(eigvec)<1e-3] = 0 # Zero the entries due to precision 
+        #eigvec[np.abs(eigvec)<1e-3] = 0 # Zero the entries due to precision 
         clean_eigvec.append(eigvec)
 
     gnm = []
@@ -138,8 +138,7 @@ def GHM(all_eigval, all_eigvec):
             for i in range(len(dx)):
                 for j in range(0, i):
                     x1, x2 = v1[:, i], v1[:, j]
-                    #print(x1, x2, np.linalg.norm(np.abs(x1)-np.abs(x2)))
-                    dx[i, j] = np.sum(np.abs(x1-x2)) # L1 norm
+                    dx[i, j] = np.abs(np.linalg.norm(x1, ord=1)-np.linalg.norm(x2, ord=1))
             dx += np.transpose(np.tril(dx))
         gnm.append(dx)
     return gnm
@@ -151,7 +150,7 @@ def _uGH(dist_mat, i, j):
     return op
 
 
-def calDis():
+def buildSC():
     flist = glob.glob('./data/*f9[6-9][0-9].txt')
     flist = sorted(flist)
     for ll in range(len(flist)):
@@ -161,51 +160,57 @@ def calDis():
         for i in range(len(contents)):
             contents[i] = contents[i].rstrip("\n").split(",")
             contents[i] = [float(s) for s in contents[i]]
-            
+        
+        # Removing redundant rows
+        points_unique = []
+        for point in contents:
+            if point not in points_unique:
+                points_unique.append(point)
+        contents = points_unique
+        
         all_eigval, all_eigvec, all_graphs = [], [], []
         all_ex, all_vx = [], []
+        
         #all_eigval, all_eigvec = [], []
         #rc = gd.AlphaComplex(coords)
         #simplex_tree = rc.create_simplex_tree()
         #val = list(simplex_tree.get_filtration())
         #print(val)
-        alpha = gd.AlphaComplex(contents)
-        st = alpha.create_simplex_tree()
+        #alpha = gd.AlphaComplex(contents)
+        #st = alpha.create_simplex_tree()
+        
+        rips_complex = gd.RipsComplex(points=contents, max_edge_length=4.3)
+        st = rips_complex.create_simplex_tree(max_dimension=2)
         val = list(st.get_filtration())
-        for f in [3.5]:#np.arange(3, 10, 1):
-            print(flist[ll], f)
-            simplices = set()
-            for v in val:
-                if np.sqrt(v[1])*2 <= f:
-                    simplices.add(tuple(v[0]))
-    
-            #edge_idx = list(n_faces(simplices,1))
-            #vert_idx = list(n_faces(simplices,0))
-            #all_ex.append(edge_idx)
-            #all_vx.append(vert_idx)
-            #G = nx.Graph()
-            #for i in range(len(vert_idx)):
-                #G.add_node((i))
-            #for (x,y) in edge_idx:
-                #G.add_edge(x,y)
-            #all_graphs.append(G)
-            #print(edge_idx, G.edges())
-            #nx.draw(G, with_labels=True)
-            #laplacian = np.matmul(boundary_operator(simplices, 1).toarray(), np.transpose(boundary_operator(simplices, 1).toarray()))
-            laplacian = np.matmul(boundary_operator(simplices, 2).toarray(), np.transpose(boundary_operator(simplices, 2).toarray()))+np.matmul(np.transpose(boundary_operator(simplices, 1).toarray()), boundary_operator(simplices, 1).toarray())
-            #laplacian = np.matmul(boundary_operator(simplices, 3).toarray(), np.transpose(boundary_operator(simplices, 3).toarray()))+np.matmul(np.transpose(boundary_operator(simplices, 2).toarray()), boundary_operator(simplices, 2).toarray())
-            eigval, eigvec = np.linalg.eigh(laplacian)
-            #u, s, vh = np.linalg.svd(laplacian)
-            #eigval = s*s
-            #eigvec = np.transpose(vh)
-            #print(eigval)
-            all_eigval.append(eigval)
-            all_eigvec.append(eigvec)
-        all_sx = [all_vx, all_ex]
-        #h1 = nx.cycle_basis(G)
-        gnm = GHM(all_eigval, all_eigvec)
-        np.save("./data/processed/" + flist[ll][7:-4]+"_gnm_cocycle2.npy", gnm)
+        
+        # Extract only the simplices (without filtration values) if you need just the simplices
 
+        
+        #for f in [3.5]:#np.arange(3, 10, 1):
+            #print(flist[ll], f)
+        simplices = set()
+        for v in val:
+            #    if np.sqrt(v[1])*2 <= f:
+            simplices.add(tuple(v[0]))
+         
+        laplacian = np.matmul(boundary_operator(simplices, 2).toarray(), np.transpose(boundary_operator(simplices, 2).toarray()))+np.matmul(np.transpose(boundary_operator(simplices, 1).toarray()), boundary_operator(simplices, 1).toarray())
+        eigval, eigvec = np.linalg.eigh(laplacian)
+        all_eigval.append(eigval)
+        all_eigvec.append(eigvec)
+        #h1 = nx.cycle_basis(G)
+        np.save("./data/processed/" + flist[ll][7:-4]+"_eigval.npy", eigval)
+        np.save("./data/processed/" + flist[ll][7:-4]+"_eigvec.npy", eigvec)
+        
+
+def calDis():
+     flist = glob.glob('./data/*f9[6-9][0-9].txt')
+     flist = sorted(flist)
+     for ll in range(len(flist)):
+         all_eigval = np.load("./data/processed/" + flist[ll][7:-4]+"_eigval.npy")
+         all_eigvec = np.load("./data/processed/" + flist[ll][7:-4]+"_eigvec.npy")        
+         gnm, v1 = GHM(all_eigval, all_eigvec)
+         np.save("./data/processed/" + flist[ll][7:-4]+"_gnm_cocycle2.npy", gnm)
+         np.save("./data/processed/" + flist[ll][7:-4]+"_cleanvec.npy", v1)
 
 def cal_uGH_matrix():
 
@@ -257,59 +262,9 @@ def cluster_cocycle(ncluster):
    
     
     
-    feat = mat
-    
-    # Perform hierarchical clustering using the distance matrix
-    #Z = linkage(feat, method='average')
-    
-    # Plot the dendrogram
-    #plt.figure(figsize=(8, 4))
-    #dendrogram(Z)
-    #plt.title('Hierarchical Clustering Dendrogram')
-    #plt.xlabel('Sample index')
-    #plt.ylabel('Distance')
-    #plt.show()
-    
-    # Get cluster labels (e.g., 2 clusters)
-    #cluster_labels = fcluster(Z, t=3, criterion='maxclust')
-    #print("Cluster labels:", cluster_labels)
-    
-    
-    #### Spectral clustering ######
-    #sigma = 0.5
-    #affinity_matrix = np.exp(-feat ** 2 / (2. * sigma ** 2))
-    #spectral = SpectralClustering(n_clusters=3, affinity='precomputed', random_state=42)
-    #cluster_labels = spectral.fit_predict(affinity_matrix)
-    
-    #print("Cluster labels:", cluster_labels)
-    
-    
-    #feat2 = []
-    #for i in range(len(feat)):
-    #    tmp = []
-    #    if ncluster == 9:
-    #        for j in range(0, 360, 40):
-    #            tmp.append(np.min(feat[i][j:j+40]))
-                #tmp.append(np.max(feat[i][j:j+40]))
-                #tmp.append(np.mean(feat[i][j:j+40]))
-                #tmp.append(np.std(feat[i][j:j+40]))
-    #    elif ncluster == 4:
-    #       for j in range(0, 360, 120):
-    #            tmp.append(np.min(feat[i][j:j+120]))
-    #            tmp.append(np.max(feat[i][j:j+120]))
-    #            tmp.append(np.mean(feat[i][j:j+120]))
-    #            tmp.append(np.std(feat[i][j:j+120]))
-    #    feat2.append(tmp)
-    
-    #feat = np.array(feat2)
-    #print(type(feat[0]))
-    
-    
+    feat = mat    
     frd = 10
     frs = 360//ncluster + 10
-    
-    #values = PCA(n_components=2).fit_transform(feat)
-    #print(values.explained_variance_ratio_)
     values = TSNE(n_components=2, verbose=2).fit_transform(feat)
     
     #values = umap.UMAP(random_state=42).fit_transform(feat)
@@ -337,9 +292,6 @@ def cluster_cocycle(ncluster):
         plt.scatter(values[2*(frs-frd):3*(frs-frd),0], values[2*(frs-frd):3*(frs-frd),1], marker='.', color='tab:green', alpha=0.75,  linewidth=0.5, s=20, label="I")
         
     
-        
-    #plt.ylim(np.min(values[:, 1])-10, np.max(values[:,1])+50)
-    #plt.xlim(-100, 100)
     plt.legend(ncol=3, loc='upper left', handlelength=.5, borderpad=.25, fontsize=10)
     plt.axis('equal')
     plt.xticks([])
@@ -352,3 +304,20 @@ if __name__ == '__main__':
     #calDis()  # calculate distance matrix for each structure and save data
     #cal_uGH_matrix() # calculate pairwise uGH between structures and save the matrix
     cluster_cocycle(ncluster = 3) # cluster data according to uGH matrix
+    
+    
+    #flist = glob.glob('./data/*f9[6-9][0-9].txt')
+    #flist = sorted(flist)
+    
+    #for ll in range(len(flist)):
+    #for ll in [4]:
+    #    print(ll)
+    #    visualize_data(ll)
+
+
+    #ll = 340   
+    # load gnm matrix
+    #filename = "./data/processed/" + flist[ll][7:-4]+"_gnm_cocycle2.npy"
+    #print(filename)
+    # Load the .npy file
+    #gnm = np.load(filename)
