@@ -198,8 +198,8 @@ def buildSC():
         all_eigval.append(eigval)
         all_eigvec.append(eigvec)
         #h1 = nx.cycle_basis(G)
-        np.save("./data/processed/" + flist[ll][7:-4]+"_eigval.npy", eigval)
-        np.save("./data/processed/" + flist[ll][7:-4]+"_eigvec.npy", eigvec)
+        np.save("./data/processed/" + flist[ll][7:-4]+"_eigval.npy", all_eigval)
+        np.save("./data/processed/" + flist[ll][7:-4]+"_eigvec.npy", all_eigvec)
         
 
 def calDis():
@@ -301,7 +301,8 @@ def cluster_cocycle(ncluster):
 
 
 if __name__ == '__main__':
-    #calDis()  # calculate distance matrix for each structure and save data
+    #buildSC() # build simplicial complex; compute eigenvalues and eigenvectors
+    calDis()  # calculate distance matrix for each structure and save data
     #cal_uGH_matrix() # calculate pairwise uGH between structures and save the matrix
     cluster_cocycle(ncluster = 3) # cluster data according to uGH matrix
     

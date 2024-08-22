@@ -184,8 +184,8 @@ def buildSC():
         all_eigval.append(eigval)
         all_eigvec.append(eigvec)
         #h1 = nx.cycle_basis(G)
-        np.save("./data/processed/" + flist[ll][7:-4]+"_eigval.npy", eigval)
-        np.save("./data/processed/" + flist[ll][7:-4]+"_eigvec.npy", eigvec)
+        np.save("./data/processed/" + flist[ll][7:-4]+"_eigval.npy", all_eigval)
+        np.save("./data/processed/" + flist[ll][7:-4]+"_eigvec.npy", all_eigvec)
 
 def calDis():
      flist = glob.glob('./data/*f9[6-9][0-9].txt')
@@ -432,34 +432,42 @@ def visualize_data(ll):
 
 
 if __name__ == '__main__':
-    buildSC() # build simplicial complex; compute eigenvalues and eigenvectors
-    # calDis()  # calculate distance matrix for each structure and save data, takes ~ 3 min
-    # cal_uGH_matrix() # calculate pairwise uGH between structures and save the matrix
-    # cluster_l1(ncluster = 3) # cluster data according to uGH matrix
+    #buildSC() # build simplicial complex; compute eigenvalues and eigenvectors
+    #calDis()  # calculate distance matrix for each structure and save data, takes ~ 3 min
+    #cal_uGH_matrix() # calculate pairwise uGH between structures and save the matrix
+    cluster_l1(ncluster = 9) # cluster data according to uGH matrix
     
-    ll = 50
+    #ll = 1
     
-    flist = glob.glob('./data/*f9[6-9][0-9].txt')
-    flist = sorted(flist)
+    #flist = glob.glob('./data/*f9[6-9][0-9].txt')
+    #flist = sorted(flist)
     
     #for ll in range(len(flist)):
     #for ll in [4]:
     #    print(ll)
-    visualize_data(ll)
+    #visualize_data(ll)
 
 
     # load gnm matrix
-    filename = "./data/processed/" + flist[ll][7:-4]+"_gnm_l1norms2.npy"
-    #print(filename)
-    # Load the .npy file
-    gnm = np.load(filename)
-    
-    eigval = np.load("./data/processed/" + flist[ll][7:-4]+"_eigval.npy")
-    eigvec = np.load("./data/processed/" + flist[ll][7:-4]+"_eigvec.npy")
-    cleanvec =  np.load("./data/processed/" + flist[ll][7:-4]+"_cleanvec.npy")
-    print(str(cleanvec.shape[1])+" independent cycles")
-    print(np.sum(np.abs(cleanvec[:, 1]-cleanvec[:, 2])))
+    #filename1 = "./data/processed/" + flist[ll][7:-4]+"_gnm_l1norms2.npy"
+    #filename2 = "./data/processed/" + flist[ll+80][7:-4]+"_gnm_l1norms2.npy"
 
+    #print(filename1)
+    #print(filename2)
+
+    # Load the .npy file
+    #gnm1 = np.load(filename1)
+    #gnm2 = np.load(filename2)
+
+    #eigval = np.load("./data/processed/" + flist[ll][7:-4]+"_eigval.npy")
+    #eigvec = np.load("./data/processed/" + flist[ll][7:-4]+"_eigvec.npy")
+    #cleanvec =  np.load("./data/processed/" + flist[ll][7:-4]+"_cleanvec.npy")
+    #print(str(cleanvec.shape[1])+" independent cycles")
+    #print(np.sum(np.abs(cleanvec[:, 0]-cleanvec[:, 1])))
+    #print(str(len(gnm1[0]))+ " cycles in structure 1; ", str(len(gnm2[0]))+ " cycles in structure 2. ", )
+    #print(uGH(gnm1[0], gnm2[0]))
+    
+    
     # Plot the heatmap
     #plt.imshow(gnm[0], cmap='hot', interpolation='nearest')
     #plt.colorbar()  # Add a colorbar to the heatmap
