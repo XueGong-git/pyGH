@@ -36,41 +36,22 @@ def convertpdb(filename):
     if f.mode == 'r':
         contents = f.readlines()
     
-    #recordname = []
 
-    #atomNum = []
     atomName = []
-    #altLoc = []
-    #resName = []
-
-    #chainID = []
-    #resNum = []
     X = []
     Y = []
     Z = []
-
-    #occupancy = []
-    #betaFactor = []
     element = []
-    #charge = []
     
     
     for i in range(len(contents)):
         thisLine = contents[i]
 
         if thisLine[0:4]=='ATOM' or thisLine[0:6]=='HETATM':
-            #recordname = np.append(recordname,thisLine[:6].strip())
-            #atomNum = np.append(atomNum, float(thisLine[6:11]))
             atomName = np.append(atomName, thisLine[12:16])
-            #altLoc = np.append(altLoc,thisLine[16])
-            #resName = np.append(resName, thisLine[17:20].strip())
-            #chainID = np.append(chainID, thisLine[21])
-            #resNum = np.append(resNum, float(thisLine[23:26]))
             X = np.append(X, float(thisLine[30:38]))
             Y = np.append(Y, float(thisLine[38:46]))
             Z = np.append(Z, float(thisLine[46:54]))
-            #occupancy = np.append(occupancy, float(thisLine[55:60]))
-            #betaFactor = np.append(betaFactor, float(thisLine[61:66]))
             element = np.append(element,thisLine[12:14])
 
     #print(atomName)
@@ -133,14 +114,12 @@ def WM(all_eigval, all_eigvec, all_M):
             for i in range(len(dx)):
                 for j in range(0, i):
                     x1, x2 = v1[:, i]**2, v1[:, j]**2
-                    #print(x1, x2, np.linalg.norm(np.abs(x1)-np.abs(x2)))
                     if np.sum(x1) < 1:
                         x1[np.argmax(x1)] += 1-np.sum(x1)
                         
                     if np.sum(x2) < 1: 
                         x2[np.argmax(x2)] += 1-np.sum(x2)
                     dx[i, j] = ot.emd2(x1, x2, all_M[f])
-                    #print(i, j, dx[i, j])
             dx += np.transpose(np.tril(dx))
         wm.append(dx)
     return wm
@@ -151,30 +130,24 @@ def _uGH(i, j):
     return op
 
 def build_wm(flist):
-    #print(flist[ll])
+    f = 3
     file = open(flist)
     contents = file.readlines()
     for i in range(len(contents)):
         contents[i] = contents[i].rstrip("\n").split(",")
         contents[i] = [float(s) for s in contents[i]]
         
-    all_eigval, all_eigvec, all_graphs = [], [], []
+    all_eigval, all_eigvec = [], []
     all_ex, all_vx = [], []
     all_M = []
-    #all_eigval, all_eigvec = [], []
-    #rc = gd.AlphaComplex(coords)
-    #simplex_tree = rc.create_simplex_tree()
-    #val = list(simplex_tree.get_filtration())
-    #print(val)
     alpha = gd.AlphaComplex(contents)
     st = alpha.create_simplex_tree()
     val = list(st.get_filtration())
-    for f in [3.5]:#np.arange(3, 10, 1):
-        print(flist, f)
-        simplices = set()
-        for v in val:
-            if np.sqrt(v[1])*2 <= f:
-                simplices.add(tuple(v[0]))
+    print(flist, f)
+    simplices = set()
+    for v in val:
+        if v[1] <= f:
+            simplices.add(tuple(v[0]))
 
 
         edges = list(n_faces(simplices,1))
@@ -190,34 +163,14 @@ def build_wm(flist):
                     M[i,j] = np.min(tmp)
 
         M += np.transpose(np.tril(M))
-        #all_ex.append(edge_idx)
-        #all_vx.append(vert_idx)
-        #G = nx.Graph()
-        #for i in range(len(vert_idx)):
-            #G.add_node((i))
-        #for (x,y) in edge_idx:
-            #G.add_edge(x,y)
-        #all_graphs.append(G)
-        #print(edge_idx, G.edges())
-        #nx.draw(G, with_labels=True)
-        #laplacian = np.matmul(boundary_operator(simplices, 1).toarray(), np.transpose(boundary_operator(simplices, 1).toarray()))
         laplacian = np.matmul(boundary_operator(simplices, 2).toarray(), np.transpose(boundary_operator(simplices, 2).toarray()))+np.matmul(np.transpose(boundary_operator(simplices, 1).toarray()), boundary_operator(simplices, 1).toarray())
-        #laplacian = np.matmul(boundary_operator(simplices, 3).toarray(), np.transpose(boundary_operator(simplices, 3).toarray()))+np.matmul(np.transpose(boundary_operator(simplices, 2).toarray()), boundary_operator(simplices, 2).toarray())
         eigval, eigvec = np.linalg.eigh(laplacian)
-        #u, s, vh = np.linalg.svd(laplacian)
-        #eigval = s*s
-        #eigvec = np.transpose(vh)
-        #print(eigval)
         all_eigval.append(eigval)
         all_eigvec.append(eigvec)
         all_M.append(M)
     all_sx = [all_vx, all_ex]
-    #h1 = nx.cycle_basis(G)
     wm = WM(all_eigval, all_eigvec, all_M)
     np.save("./data/processed/" + flist[7:-4]+"_wm.npy", wm)
-
-
-
 
 ### Load coordinates and build Wasserstein Distance matrix with multiprocessing
 
@@ -229,7 +182,6 @@ def build_wm_multiprocessing():
     no_threads = mp.cpu_count()
     p = mp.Pool(processes = no_threads)
     vals = p.map(build_wm, flist)
-    #vals = p.map(build_wm, ['./data/MAPbI3_Tetragonal_CNXPb_atmlist_L5_f997.txt', './data/MAPbI3_Tetragonal_CNXPb_atmlist_L5_f998.txt'])
     p.close()
     p.join()
     
@@ -245,7 +197,6 @@ def build_uGH():
     for ll in range(len(flist)):
         print(flist[ll])
         data = np.load(flist[ll], allow_pickle=True)
-        #print(np.shape(data))
         dist_mat.append(data[0])
     
     mat = np.zeros((len(dist_mat), len(dist_mat)))
@@ -257,7 +208,6 @@ def build_uGH():
                 pairs.append((i,j))
 
     # Create a multiprocessing pool
-
     no_threads = mp.cpu_count()
     p = mp.Pool(processes = no_threads)
     vals = p.starmap(_uGH, pairs)
@@ -287,36 +237,11 @@ def cluster_wm(ncluster = None):
     plt.show()  # Display the plot
 
     feat = mat
-    
-
-    
-    #feat2 = []
-    #for i in range(len(feat)):
-    #    tmp = []
-    #    for j in range(0, 360, 40):
-    #        tmp.append(np.min(feat[i][j:j+40]))
-    #        tmp.append(np.max(feat[i][j:j+40]))
-    #        tmp.append(np.mean(feat[i][j:j+40]))
-    #        tmp.append(np.std(feat[i][j:j+40]))
-    #    for j in range(0, 360, 120):
-    #        tmp.append(np.min(feat[i][j:j+120]))
-    #        tmp.append(np.max(feat[i][j:j+120]))
-    #        tmp.append(np.mean(feat[i][j:j+120]))
-    #        tmp.append(np.std(feat[i][j:j+120]))
-    #    feat2.append(tmp)
-    
-    #feat = np.array(feat2)
-    #print(type(feat[0]))
-    
-    
     frd = 10
     frs = 360//ncluster + 10
     
-    #values = PCA(n_components=2).fit_transform(feat)
-    #print(values.explained_variance_ratio_)
     values = TSNE(n_components=2, verbose=2).fit_transform(feat)
     
-    #values = umap.UMAP(random_state=42).fit_transform(feat)
     plt.figure(figsize=(5,5), dpi=200)
     mpl.rcParams['axes.spines.right'] = False
     mpl.rcParams['axes.spines.top'] = False
@@ -340,17 +265,13 @@ def cluster_wm(ncluster = None):
         plt.scatter(values[2*(frs-frd):3*(frs-frd),0], values[2*(frs-frd):3*(frs-frd),1], marker='.', color='tab:green', alpha=0.75,  linewidth=0.5, s=20, label="I")
        
             
-        
-    #plt.ylim(np.min(values[:, 1])-10, np.max(values[:,1])+50)
-    #plt.xlim(-100, 100)
-    #plt.legend(ncol=3, loc='upper left', handlelength=.5, borderpad=.25, fontsize=10)
     plt.axis('equal')
     plt.xticks([])
     plt.yticks([])
     plt.savefig("tsne_stats_40_9types_wm.png", dpi=200)
-    #plt.show()
 
 if __name__ == '__main__':
-    #build_wm_multiprocessing()
-    #build_uGH()
+    build_wm_multiprocessing()
+    build_uGH()
+    cluster_wm(ncluster = 3)
     cluster_wm(ncluster = 9)

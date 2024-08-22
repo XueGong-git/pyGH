@@ -88,41 +88,17 @@ def cluster_coords(ncluster = None):
         for i in range(len(contents)):
             contents[i] = contents[i].rstrip("\n").split(",")
             contents[i] = [float(s) for s in contents[i]]
-        
-        coords.append(np.reshape(contents, (len(contents)*3,)))
-    
-    
-    plt.imshow(coords, cmap='coolwarm', interpolation='nearest')
-    plt.colorbar()  # Add a colorbar to show the scale
-    plt.savefig('coords.png', dpi=300, bbox_inches='tight')  # Save the figure with high resolution
-    plt.show()  # Display the plot
+        coords.append(np.reshape(contents, (len(contents)*3,1)))
 
-    
-    #feat2 = []
-    #for i in range(len(coords)):
-    #    tmp = []
-    #    if ncluster == 9:
-    #        for j in range(0, 360, 40):
-    #            tmp.append(np.min(coords[j:j+40]))
-    #            tmp.append(np.max(coords[j:j+40]))
-    #            tmp.append(np.mean(coords[j:j+40]))
-    #            tmp.append(np.std(coords[j:j+40]))
-    #    elif ncluster == 4:
-    #        for j in range(0, 360, 120):
-    #            tmp.append(np.min(feat[i][j:j+120]))
-    #            tmp.append(np.max(feat[i][j:j+120]))
-    #            tmp.append(np.mean(feat[i][j:j+120]))
-    #            tmp.append(np.std(feat[i][j:j+120]))
-    #    feat2.append(tmp)
-    
-    #coords = np.array(feat2)
     
     frd = 10
     frs = 40 + 10
     
     #values = PCA(n_components=2).fit_transform(feat)
     #print(values.explained_variance_ratio_)
-    values = TSNE(n_components=2, verbose=2).fit_transform(np.array(coords))
+    
+    data = np.reshape(np.array(coords), (len(coords), len(contents)*3))
+    values = TSNE(n_components=2, verbose=2).fit_transform(data)
     
     #values = umap.UMAP(random_state=42).fit_transform(feat)
     plt.figure(figsize=(5,5), dpi=200)
@@ -147,18 +123,16 @@ def cluster_coords(ncluster = None):
         plt.scatter(values[(frs-frd):2*(frs-frd),0], values[(frs-frd):2*(frs-frd),1], marker='.', color='tab:orange', alpha=0.75,  linewidth=0.5, s=20, label="Cl")
         plt.scatter(values[2*(frs-frd):3*(frs-frd),0], values[2*(frs-frd):3*(frs-frd),1], marker='.', color='tab:green', alpha=0.75,  linewidth=0.5, s=20, label="I")
    
-        
-    #plt.ylim(np.min(values[:, 1])-10, np.max(values[:,1])+50)
-    #plt.xlim(-100, 100)
-    #plt.legend(ncol=3, loc='upper left', handlelength=.5, borderpad=.25, fontsize=10)
+
     
+    plt.legend(ncol = 3, loc='upper left', handlelength=.5, borderpad=.25, fontsize=10)
     plt.axis('equal')
     plt.xticks([])
     plt.yticks([])
     plt.savefig(f"tsne_coords_{ncluster}_clusters.png", dpi=200)
-    #plt.show()
+    plt.show()
 
 if __name__ == '__main__':
     #build_wm_multiprocessing()
     #build_uGH()
-    cluster_coords(ncluster = 3)
+    cluster_coords(ncluster = 9)

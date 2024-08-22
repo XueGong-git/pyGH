@@ -150,7 +150,7 @@ def _uGH(dist_mat, i, j):
     return op
 
 
-def buildSC():
+def calDis(f):
     flist = glob.glob('./data/*f9[6-9][0-9].txt')
     flist = sorted(flist)
     for ll in range(len(flist)):
@@ -168,19 +168,19 @@ def buildSC():
                 points_unique.append(point)
         contents = points_unique
         
-        all_eigval, all_eigvec, all_graphs = [], [], []
-        all_ex, all_vx = [], []
+        all_eigval, all_eigvec = [], []
         
         #all_eigval, all_eigvec = [], []
         #rc = gd.AlphaComplex(coords)
         #simplex_tree = rc.create_simplex_tree()
         #val = list(simplex_tree.get_filtration())
         #print(val)
-        #alpha = gd.AlphaComplex(contents)
-        #st = alpha.create_simplex_tree()
+        alpha = gd.AlphaComplex(contents)
+        st = alpha.create_simplex_tree()
         
-        rips_complex = gd.RipsComplex(points=contents, max_edge_length=4.3)
-        st = rips_complex.create_simplex_tree(max_dimension=2)
+        #rips_complex = gd.RipsComplex(points=contents, max_edge_length=4.3)
+        #st = rips_complex.create_simplex_tree(max_dimension=2)
+        
         val = list(st.get_filtration())
         
         # Extract only the simplices (without filtration values) if you need just the simplices
@@ -190,27 +190,16 @@ def buildSC():
             #print(flist[ll], f)
         simplices = set()
         for v in val:
-            #    if np.sqrt(v[1])*2 <= f:
-            simplices.add(tuple(v[0]))
+            if v[1] <= f:
+                simplices.add(tuple(v[0]))
          
         laplacian = np.matmul(boundary_operator(simplices, 2).toarray(), np.transpose(boundary_operator(simplices, 2).toarray()))+np.matmul(np.transpose(boundary_operator(simplices, 1).toarray()), boundary_operator(simplices, 1).toarray())
         eigval, eigvec = np.linalg.eigh(laplacian)
         all_eigval.append(eigval)
         all_eigvec.append(eigvec)
-        #h1 = nx.cycle_basis(G)
-        np.save("./data/processed/" + flist[ll][7:-4]+"_eigval.npy", all_eigval)
-        np.save("./data/processed/" + flist[ll][7:-4]+"_eigvec.npy", all_eigvec)
-        
-
-def calDis():
-     flist = glob.glob('./data/*f9[6-9][0-9].txt')
-     flist = sorted(flist)
-     for ll in range(len(flist)):
-         all_eigval = np.load("./data/processed/" + flist[ll][7:-4]+"_eigval.npy")
-         all_eigvec = np.load("./data/processed/" + flist[ll][7:-4]+"_eigvec.npy")        
-         gnm, v1 = GHM(all_eigval, all_eigvec)
-         np.save("./data/processed/" + flist[ll][7:-4]+"_gnm_cocycle2.npy", gnm)
-         np.save("./data/processed/" + flist[ll][7:-4]+"_cleanvec.npy", v1)
+        gnm = GHM(all_eigval, all_eigvec)
+        np.save("./data/processed/" + flist[ll][7:-4]+"_gnm_cocycle2.npy", gnm)
+        #np.save("./data/processed/" + flist[ll][7:-4]+"_cleanvec.npy", v1)
 
 def cal_uGH_matrix():
 
@@ -292,20 +281,21 @@ def cluster_cocycle(ncluster):
         plt.scatter(values[2*(frs-frd):3*(frs-frd),0], values[2*(frs-frd):3*(frs-frd),1], marker='.', color='tab:green', alpha=0.75,  linewidth=0.5, s=20, label="I")
         
     
-    plt.legend(ncol=3, loc='upper left', handlelength=.5, borderpad=.25, fontsize=10)
+    plt.legend(ncol = 3, loc='upper left', handlelength=.5, borderpad=.25, fontsize=10)
     plt.axis('equal')
     plt.xticks([])
     plt.yticks([])
-    #plt.savefig("tsne_stats_40_cocycle2.png", dpi=200)
+    plt.savefig(f"tsne_cocycle_{ncluster}_clusters.png", dpi=200)
     plt.show()
 
 
 if __name__ == '__main__':
-    #buildSC() # build simplicial complex; compute eigenvalues and eigenvectors
-    calDis()  # calculate distance matrix for each structure and save data
-    #cal_uGH_matrix() # calculate pairwise uGH between structures and save the matrix
+    f = 4
+    calDis(f)  # calculate distance matrix for each structure and save data
+    cal_uGH_matrix() # calculate pairwise uGH between structures and save the matrix
     cluster_cocycle(ncluster = 3) # cluster data according to uGH matrix
-    
+    cluster_cocycle(ncluster = 9) # cluster data according to uGH matrix
+
     
     #flist = glob.glob('./data/*f9[6-9][0-9].txt')
     #flist = sorted(flist)
@@ -316,7 +306,7 @@ if __name__ == '__main__':
     #    visualize_data(ll)
 
 
-    #ll = 340   
+    #ll = 1   
     # load gnm matrix
     #filename = "./data/processed/" + flist[ll][7:-4]+"_gnm_cocycle2.npy"
     #print(filename)

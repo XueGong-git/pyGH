@@ -32,6 +32,7 @@ import seaborn as sns
 import plotly.graph_objects as go
 from mpl_toolkits.mplot3d import Axes3D
 import os
+import time
 
 
 
@@ -136,7 +137,7 @@ def _uGH(dist_mat, i, j):
     return op
 
 ### Compute simplicial complices and eigenvalues, save eigenvalues and eigen vectors to npy file
-def buildSC():
+def calDis(f):
     flist = glob.glob('./data/*f9[6-9][0-9].txt')
     flist = sorted(flist)
     for ll in range(len(flist)):
@@ -162,11 +163,11 @@ def buildSC():
         #simplex_tree = rc.create_simplex_tree()
         #val = list(simplex_tree.get_filtration())
         #print(val)
-        #alpha = gd.AlphaComplex(contents)
-        #st = alpha.create_simplex_tree()
+        alpha = gd.AlphaComplex(contents)
+        st = alpha.create_simplex_tree()
         
-        rips_complex = gd.RipsComplex(points=contents, max_edge_length=4.3)
-        st = rips_complex.create_simplex_tree(max_dimension=2)
+        #rips_complex = gd.RipsComplex(points=contents, max_edge_length=4.3)
+        #st = rips_complex.create_simplex_tree(max_dimension=2)
         val = list(st.get_filtration())
         
         # Extract only the simplices (without filtration values) if you need just the simplices
@@ -176,26 +177,16 @@ def buildSC():
             #print(flist[ll], f)
         simplices = set()
         for v in val:
-            #    if np.sqrt(v[1])*2 <= f:
-            simplices.add(tuple(v[0]))
+            if v[1] <= f:
+                simplices.add(tuple(v[0]))
          
         laplacian = np.matmul(boundary_operator(simplices, 2).toarray(), np.transpose(boundary_operator(simplices, 2).toarray()))+np.matmul(np.transpose(boundary_operator(simplices, 1).toarray()), boundary_operator(simplices, 1).toarray())
         eigval, eigvec = np.linalg.eigh(laplacian)
         all_eigval.append(eigval)
-        all_eigvec.append(eigvec)
-        #h1 = nx.cycle_basis(G)
-        np.save("./data/processed/" + flist[ll][7:-4]+"_eigval.npy", all_eigval)
-        np.save("./data/processed/" + flist[ll][7:-4]+"_eigvec.npy", all_eigvec)
-
-def calDis():
-     flist = glob.glob('./data/*f9[6-9][0-9].txt')
-     flist = sorted(flist)
-     for ll in range(len(flist)):
-         all_eigval = np.load("./data/processed/" + flist[ll][7:-4]+"_eigval.npy")
-         all_eigvec = np.load("./data/processed/" + flist[ll][7:-4]+"_eigvec.npy")        
-         gnm, v1 = GHM(all_eigval, all_eigvec)
-         np.save("./data/processed/" + flist[ll][7:-4]+"_gnm_l1norms2.npy", gnm)
-         np.save("./data/processed/" + flist[ll][7:-4]+"_cleanvec.npy", v1)
+        all_eigvec.append(eigvec)     
+        gnm, v1 = GHM(all_eigval, all_eigvec)
+        np.save("./data/processed/" + flist[ll][7:-4]+"_gnm_l1norms2.npy", gnm)
+        np.save("./data/processed/" + flist[ll][7:-4]+"_cleanvec.npy", v1)
 
 def cal_uGH_matrix():
 
@@ -238,7 +229,7 @@ def cal_uGH_matrix():
     
 def cluster_l1(ncluster):
     
-    mat = np.load("GH_OIHP_all_l1norms2.npy", allow_pickle=True)
+    mat = np.load("GH_OIHP_all_l1norms2_filtration.npy", allow_pickle=True)
     
     # plot mat as heat map and save mimage
     plt.imshow(mat, cmap='coolwarm', interpolation='nearest')
@@ -246,67 +237,16 @@ def cluster_l1(ncluster):
     plt.savefig('uGH_l1.png', dpi=300, bbox_inches='tight')  # Save the figure with high resolution
     plt.show()  # Display the plot
     
-   
-    
-    
     feat = mat
-    
-    
-    """
-    # Perform hierarchical clustering using the distance matrix
-    Z = linkage(feat, method='average')
-    
-    # Plot the dendrogram
-    plt.figure(figsize=(8, 4))
-    dendrogram(Z)
-    plt.title('Hierarchical Clustering Dendrogram')
-    plt.xlabel('Sample index')
-    plt.ylabel('Distance')
-    plt.show()
-    
-    # Get cluster labels (e.g., 2 clusters)
-    cluster_labels = fcluster(Z, t=3, criterion='maxclust')
-    print("Cluster labels:", cluster_labels)
-    """
-    
-    """
-    #### Spectral clustering ######
-    sigma = 0.5
-    affinity_matrix = np.exp(-feat ** 2 / (2. * sigma ** 2))
-    spectral = SpectralClustering(n_clusters=3, affinity='precomputed', random_state=42)
-    cluster_labels = spectral.fit_predict(affinity_matrix)
-    
-    print("Cluster labels:", cluster_labels)
-    """
-    
-    
-    #feat2 = []
-    #for i in range(len(feat)):
-    #    tmp = []
-    #    if ncluster == 9:
-    #        for j in range(0, 360, 40):
-    #            tmp.append(np.min(feat[i][j:j+40]))
-                #tmp.append(np.max(feat[i][j:j+40]))
-                #tmp.append(np.mean(feat[i][j:j+40]))
-                #tmp.append(np.std(feat[i][j:j+40]))
-    #    elif ncluster == 4:
-    #        for j in range(0, 360, 120):
-    #            tmp.append(np.min(feat[i][j:j+120]))
-    #            tmp.append(np.max(feat[i][j:j+120]))
-    #            tmp.append(np.mean(feat[i][j:j+120]))
-    #            tmp.append(np.std(feat[i][j:j+120]))
-    #    feat2.append(tmp)
-    
-    #feat = np.array(feat2)
-    #print(type(feat[0]))
+
     
     frd = 10
     frs = 360//ncluster + 10
-    
-    #values = PCA(n_components=2).fit_transform(feat)
-    #print(values.explained_variance_ratio_)
-    #values = TSNE(n_components=2, verbose=2, perplexity= 20, random_state=40,  metric='jaccard').fit_transform(feat)
-    values = TSNE(n_components=2, verbose=2).fit_transform(feat)
+
+
+
+
+
 
     #values = umap.UMAP(random_state=42).fit_transform(feat)
     plt.figure(figsize=(5,5), dpi=200)
@@ -341,7 +281,7 @@ def cluster_l1(ncluster):
     plt.show()
 
 
-def visualize_data(ll):
+def visualize_data(ll, f):
     # load coordinates
     flist = glob.glob('./data/*f9[6-9][0-9].txt')
     flist = sorted(flist)
@@ -373,19 +313,19 @@ def visualize_data(ll):
     # Example 3D point cloud
     
     # Create a Rips complex from the points, with a max edge length of 1.5
-    rips_complex = gd.RipsComplex(points=points, max_edge_length=4.3)
-    simplex_tree = rips_complex.create_simplex_tree(max_dimension=2)
-    edges = [simplex for simplex, _ in simplex_tree.get_skeleton(1) if len(simplex) == 2]
-    triangles = [simplex for simplex, _ in simplex_tree.get_skeleton(2) if len(simplex) == 3]
-    print(str(len(edges)) + " edges and " + str(len(triangles)) + " triangles")
+    #rips_complex = gd.RipsComplex(points=points, max_edge_length=4.3)
+    #simplex_tree = rips_complex.create_simplex_tree(max_dimension=2)
+    #edges = [simplex for simplex, _ in simplex_tree.get_skeleton(1) if len(simplex) == 2]
+    #triangles = [simplex for simplex, _ in simplex_tree.get_skeleton(2) if len(simplex) == 3]
+    #print(str(len(edges)) + " edges and " + str(len(triangles)) + " triangles")
     
     # Alpha complex
-    #alpha_complex = gd.AlphaComplex(points=points)
-    #simplex_tree = alpha_complex.create_simplex_tree()
-    #filtered_simplices = [ simplex for simplex in simplex_tree.get_filtration() if np.sqrt(simplex[1])*2 <= 3.5]
+    alpha_complex = gd.AlphaComplex(points=points)
+    simplex_tree = alpha_complex.create_simplex_tree()
+    filtered_simplices = [ simplex for simplex in simplex_tree.get_filtration() if simplex[1] <= f]
     # Extract edges (1-simplices) and triangles
-    #edges = [simplex[0] for simplex in filtered_simplices if len(simplex[0]) == 2]
-    #triangles = [simplex[0] for simplex in filtered_simplices if len(simplex[0]) == 3]
+    edges = [simplex[0] for simplex in filtered_simplices if len(simplex[0]) == 2]
+    triangles = [simplex[0] for simplex in filtered_simplices if len(simplex[0]) == 3]
 
     
     
@@ -419,11 +359,14 @@ def visualize_data(ll):
     ax.set_ylabel('Y')
     ax.set_zlabel('Z')
     
+    text_str = str(len(x_coords) ) + " nodes," + str(len(edges)) + " edges, " + str(len(triangles)) + " triangles"
+    print(text_str)
     # Set a title
     ax.set_title(flist[ll][7:-4])
-    
+
+    ax.text(x=-20, y=-15, z=31, s=text_str, fontsize=12, color='black')  # Place text at coordinates (2, 5, 8)
+
     # Show the plot
-    #plt.savefig(".figure/" + flist[ll][7:-4]+"_alpha_simplex.png")
     output_dir = 'figure'
     output_path = os.path.join(output_dir, flist[ll][7:-4]+ ".png")
     plt.savefig(output_path, dpi=150)
@@ -432,12 +375,31 @@ def visualize_data(ll):
 
 
 if __name__ == '__main__':
-    #buildSC() # build simplicial complex; compute eigenvalues and eigenvectors
-    #calDis()  # calculate distance matrix for each structure and save data, takes ~ 3 min
-    #cal_uGH_matrix() # calculate pairwise uGH between structures and save the matrix
-    cluster_l1(ncluster = 9) # cluster data according to uGH matrix
+    f = 4
+    calDis(f)  # calculate distance matrix for each structure and save data, takes ~ 3 min
     
-    #ll = 1
+    
+    #start_time = time.time()
+    cal_uGH_matrix() # calculate pairwise uGH between structures and save the matrix
+
+    
+    # End time
+    #end_time = time.time()
+    
+    # Calculate the elapsed timeß
+    #elapsed_time = end_time - start_timeß
+    #print(f"Runtime: {elapsed_time} seconds")
+    
+    cluster_l1(3) # cluster data according to uGH matrix
+    cluster_l1(9) # cluster data according to uGH matrix
+
+    
+    
+    for ll in range(4, 360, 40):
+        visualize_data(ll, f)
+
+        
+    #ll = 2
     
     #flist = glob.glob('./data/*f9[6-9][0-9].txt')
     #flist = sorted(flist)
@@ -445,7 +407,6 @@ if __name__ == '__main__':
     #for ll in range(len(flist)):
     #for ll in [4]:
     #    print(ll)
-    #visualize_data(ll)
 
 
     # load gnm matrix
