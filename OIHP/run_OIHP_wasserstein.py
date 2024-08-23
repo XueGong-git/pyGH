@@ -227,7 +227,7 @@ def build_uGH():
     
 
 def cluster_wm(ncluster = None):
-    mat = np.load("GH_OIHP_all_wm.npy", allow_pickle=True)
+    mat = np.load("GH_OIHP_all_wm_3.npy", allow_pickle=True)
     
     
     # plot mat as heat map and save mimage
@@ -268,10 +268,10 @@ def cluster_wm(ncluster = None):
     plt.axis('equal')
     plt.xticks([])
     plt.yticks([])
-    plt.savefig("tsne_stats_40_9types_wm.png", dpi=200)
+    plt.savefig("tsne_wm_"+ str(ncluster) +"_clusters.png", dpi=200)
 
 if __name__ == '__main__':
-    build_wm_multiprocessing()
-    build_uGH()
-    cluster_wm(ncluster = 3)
+    #build_wm_multiprocessing()
+    #build_uGH()
+    #cluster_wm(ncluster = 3)
     cluster_wm(ncluster = 9)
