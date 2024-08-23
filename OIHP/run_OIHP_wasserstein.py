@@ -188,7 +188,7 @@ def build_wm_multiprocessing():
 
 ### generate pairs of structures for calculation of pariwise uGH
 
-def build_uGH():
+def build_uGH(f):
     
     flist = glob.glob('./data/processed/*f9[6-9][0-9]_wm.npy')
     flist = sorted(flist)
@@ -223,18 +223,19 @@ def build_uGH():
     mat += np.transpose(np.tril(mat))
     #print(mat)
     
-    np.save("GH_OIHP_all_wm.npy", mat)
+    np.save("./results/GH_OIHP_all_wm_fil_"+ str(f) +".npy", mat)
     
 
-def cluster_wm(ncluster = None):
-    mat = np.load("GH_OIHP_all_wm_3.npy", allow_pickle=True)
+def cluster_wm(ncluster, f):
+    mat = np.load("./results/GH_OIHP_all_wm_fil_"+ str(f) +".npy", allow_pickle=True)
     
     
     # plot mat as heat map and save mimage
     plt.imshow(mat, cmap='coolwarm', interpolation='nearest')
     plt.colorbar()  # Add a colorbar to show the scale
-    plt.savefig('uGH_wm.png', dpi=300, bbox_inches='tight')  # Save the figure with high resolution
+    plt.savefig('./results/uGH_wm_fil_'+ str(f) + '.png', dpi=300, bbox_inches='tight')  # Save the figure with high resolution
     plt.show()  # Display the plot
+    plt.close()
 
     feat = mat
     frd = 10
@@ -268,10 +269,13 @@ def cluster_wm(ncluster = None):
     plt.axis('equal')
     plt.xticks([])
     plt.yticks([])
-    plt.savefig("tsne_wm_"+ str(ncluster) +"_clusters.png", dpi=200)
+    plt.savefig("./results/tsne_wm_"+ str(ncluster) +"_clusters_fil_"+ str(f) +".png", dpi=200)
+    plt.show()  # Display the plot
+    plt.close()
 
 if __name__ == '__main__':
-    #build_wm_multiprocessing()
-    #build_uGH()
-    #cluster_wm(ncluster = 3)
-    cluster_wm(ncluster = 9)
+    f = 4
+    build_wm_multiprocessing()
+    build_uGH(f)
+    cluster_wm(3, f)
+    cluster_wm(9, f)

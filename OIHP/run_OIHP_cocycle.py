@@ -198,12 +198,12 @@ def calDis(f):
         all_eigval.append(eigval)
         all_eigvec.append(eigvec)
         gnm = GHM(all_eigval, all_eigvec)
-        np.save("./data/processed/" + flist[ll][7:-4]+"_gnm_cocycle2.npy", gnm)
+        np.save("./data/processed/" + flist[ll][7:-4]+"_gnm_cocycle.npy", gnm)
         #np.save("./data/processed/" + flist[ll][7:-4]+"_cleanvec.npy", v1)
 
 def cal_uGH_matrix():
 
-    flist = glob.glob('./data/processed/*f9[6-9][0-9]_gnm_cocycle2.npy')
+    flist = glob.glob('./data/processed/*f9[6-9][0-9]_gnm_cocycle.npy')
     flist = sorted(flist)
     
     dist_mat = []
@@ -237,15 +237,15 @@ def cal_uGH_matrix():
     mat += np.transpose(np.tril(mat))
     #print(mat)
     
-    np.save("GH_OIHP_all_cocycle2.npy", mat)
+    np.save("./results/GH_OIHP_all_cocycle_fil_"+ str(f) +".npy", mat)
     
     
-def cluster_cocycle(ncluster):
-    mat = np.load("GH_OIHP_all_cocycle2.npy", allow_pickle=True)
-    # plot mat as heat map and save mimage
+def cluster_cocycle(ncluster, f):
+    mat = np.load("./results/GH_OIHP_all_cocycle_fil_"+ str(f) +".npy", allow_pickle=True)
+    # plot mat as heat map and save image
     plt.imshow(mat, cmap='coolwarm', interpolation='nearest')
     plt.colorbar()  # Add a colorbar to show the scale
-    plt.savefig('uGH_cocycle.png', dpi=300, bbox_inches='tight')  # Save the figure with high resolution
+    plt.savefig("./results/uGH_cocycle_fil_"+ str(f) + ".png", dpi=300, bbox_inches='tight')  # Save the figure with high resolution
     plt.show()  # Display the plot
     
    
@@ -285,16 +285,17 @@ def cluster_cocycle(ncluster):
     plt.axis('equal')
     plt.xticks([])
     plt.yticks([])
-    plt.savefig(f"tsne_cocycle_{ncluster}_clusters.png", dpi=200)
+    plt.savefig(f"./results/tsne_cocycle_{ncluster}_clusters_fil_"+ str(f) +".png", dpi=200)
     plt.show()
+    plt.close()
 
 
 if __name__ == '__main__':
-    f = 4
-    calDis(f)  # calculate distance matrix for each structure and save data
-    cal_uGH_matrix() # calculate pairwise uGH between structures and save the matrix
-    cluster_cocycle(ncluster = 3) # cluster data according to uGH matrix
-    cluster_cocycle(ncluster = 9) # cluster data according to uGH matrix
+    f = 3
+    #calDis(f)  # calculate distance matrix for each structure and save data
+    #cal_uGH_matrix() # calculate pairwise uGH between structures and save the matrix
+    cluster_cocycle(3, f) # cluster data according to uGH matrix
+    cluster_cocycle(9, f) # cluster data according to uGH matrix
 
     
     #flist = glob.glob('./data/*f9[6-9][0-9].txt')

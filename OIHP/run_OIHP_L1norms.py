@@ -185,12 +185,12 @@ def calDis(f):
         all_eigval.append(eigval)
         all_eigvec.append(eigvec)     
         gnm, v1 = GHM(all_eigval, all_eigvec)
-        np.save("./data/processed/" + flist[ll][7:-4]+"_gnm_l1norms2.npy", gnm)
+        np.save("./data/processed/" + flist[ll][7:-4]+"_gnm_l1norms.npy", gnm)
         np.save("./data/processed/" + flist[ll][7:-4]+"_cleanvec.npy", v1)
 
-def cal_uGH_matrix():
+def cal_uGH_matrix(f):
 
-    flist = glob.glob('./data/processed/*f9[6-9][0-9]_gnm_l1norms2.npy')
+    flist = glob.glob('./data/processed/*f9[6-9][0-9]_gnm_l1norms.npy')
     flist = sorted(flist)
     
     dist_mat = []
@@ -224,17 +224,17 @@ def cal_uGH_matrix():
     mat += np.transpose(np.tril(mat))
     #print(mat)
     
-    np.save("GH_OIHP_all_l1norms2.npy", mat)
+    np.save("./results/GH_OIHP_all_l1norm_fil_"+ str(f) +".npy", mat)
     
     
-def cluster_l1(ncluster):
+def cluster_l1(ncluster, f):
     
-    mat = np.load("GH_OIHP_all_l1norms2_filtration.npy", allow_pickle=True)
+    mat = np.load("./results/GH_OIHP_all_l1norm_fil_"+ str(f) +".npy", allow_pickle=True)
     
     # plot mat as heat map and save mimage
     plt.imshow(mat, cmap='coolwarm', interpolation='nearest')
     plt.colorbar()  # Add a colorbar to show the scale
-    plt.savefig('uGH_l1.png', dpi=300, bbox_inches='tight')  # Save the figure with high resolution
+    plt.savefig('./results/uGH_l1_fil_'+ str(f) + '.png', dpi=300, bbox_inches='tight')  # Save the figure with high resolution
     plt.show()  # Display the plot
     
     feat = mat
@@ -248,7 +248,7 @@ def cluster_l1(ncluster):
 
 
 
-    #values = umap.UMAP(random_state=42).fit_transform(feat)
+    values = TSNE(n_components=2, verbose=2).fit_transform(feat)
     plt.figure(figsize=(5,5), dpi=200)
     mpl.rcParams['axes.spines.right'] = False
     mpl.rcParams['axes.spines.top'] = False
@@ -277,8 +277,10 @@ def cluster_l1(ncluster):
     plt.axis('equal')
     plt.xticks([])
     plt.yticks([])
-    plt.savefig(f"tsne_l1norms_{ncluster}_clusters.png", dpi=200)
+    plt.savefig(f"./results/tsne_l1norm_{ncluster}_clusters_fil_"+ str(f) +".png", dpi=200)
     plt.show()
+    plt.close()
+
 
 
 def visualize_data(ll, f):
@@ -376,27 +378,17 @@ def visualize_data(ll, f):
 
 if __name__ == '__main__':
     f = 4
-    calDis(f)  # calculate distance matrix for each structure and save data, takes ~ 3 min
-    
-    
-    #start_time = time.time()
-    cal_uGH_matrix() # calculate pairwise uGH between structures and save the matrix
+    #calDis(f)  # calculate distance matrix for each structure and save data, takes ~ 3 min  
+    #cal_uGH_matrix(f) # calculate pairwise uGH between structures and save the matrix
 
     
-    # End time
-    #end_time = time.time()
-    
-    # Calculate the elapsed timeß
-    #elapsed_time = end_time - start_timeß
-    #print(f"Runtime: {elapsed_time} seconds")
-    
-    cluster_l1(3) # cluster data according to uGH matrix
-    cluster_l1(9) # cluster data according to uGH matrix
+    cluster_l1(3, f) # cluster data according to uGH matrix
+    cluster_l1(9, f) # cluster data according to uGH matrix
 
     
     
-    for ll in range(4, 360, 40):
-        visualize_data(ll, f)
+    #for ll in range(4, 360, 40):
+    #    visualize_data(ll, f)
 
         
     #ll = 2
