@@ -28,6 +28,8 @@ import ot # Python Optimal Transport Package
 from sklearn.feature_selection import VarianceThreshold
 from sklearn.decomposition import PCA, KernelPCA
 from sklearn.manifold import TSNE
+from functools import partial
+
 simplefilter("ignore", ClusterWarning)
 #import umap.umap_ as umap
 
@@ -100,7 +102,7 @@ def WM(all_eigval, all_eigvec, all_M):
     clean_eigvec = [] 
     for f in range(len(all_eigvec)):
         eigvec = all_eigvec[f]
-        eigvec[np.abs(eigvec)<1e-3] = 0 # Zero the entries due to precision 
+        #eigvec[np.abs(eigvec)<1e-3] = 0 # Zero the entries due to precision 
         clean_eigvec.append(eigvec)
 
     wm = []
@@ -108,6 +110,7 @@ def WM(all_eigval, all_eigvec, all_M):
         print(f, len(all_eigval[f]))
         ll = list(np.where(all_eigval[f]<1e-3)[0]) #list(range(len(all_eigval[f])))#
         v1 = clean_eigvec[f][:, ll] 
+        print(str(len(ll)) + " independent cycles")
 
         dx = np.zeros((len(ll), len(ll))) # Harmonic Norm matrix for structure at f
         if len(v1) > 0:
@@ -129,8 +132,7 @@ def _uGH(i, j):
     print(op)#, np.shape(dist_mat[i]), np.shape(dist_mat[j]))
     return op
 
-def build_wm(flist):
-    f = 3
+def build_wm(flist, f):
     file = open(flist)
     contents = file.readlines()
     for i in range(len(contents)):
@@ -174,14 +176,18 @@ def build_wm(flist):
 
 ### Load coordinates and build Wasserstein Distance matrix with multiprocessing
 
-def build_wm_multiprocessing():
+def build_wm_multiprocessing(f):
     # Create a multiprocessing pool
 
     flist = glob.glob('./data/*f9[6-9][0-9].txt')
     flist = sorted(flist)
     no_threads = mp.cpu_count()
+    
+    # Create a partial function with the constant parameter 'f'
+    build_wm_partial = partial(build_wm, f=f)
+    
     p = mp.Pool(processes = no_threads)
-    vals = p.map(build_wm, flist)
+    vals = p.map(build_wm_partial, flist)
     p.close()
     p.join()
     
@@ -274,8 +280,9 @@ def cluster_wm(ncluster, f):
     plt.close()
 
 if __name__ == '__main__':
-    for f in [4, 5, 3.5, 6]:
-        build_wm_multiprocessing()
+    for f in [3, 4, 5, 3.5, 6]:
+        print("Start running Wasserstein distance for filtration = " + str(f))
+        build_wm_multiprocessing(f)
         build_uGH(f)
         cluster_wm(3, f)
         cluster_wm(9, f)

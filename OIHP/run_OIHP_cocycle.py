@@ -132,6 +132,7 @@ def GHM(all_eigval, all_eigvec):
     for f in range(len(all_eigval)):
         ll = list(np.where(all_eigval[f]<1e-3)[0]) #list(range(len(all_eigval[f])))#
         v1 = clean_eigvec[f][:, ll] 
+        print(str(len(ll)) + " independent cycles")
 
         dx = np.zeros((len(ll), len(ll))) # Harmonic Norm matrix for structure at f
         if len(v1) > 0:
@@ -154,7 +155,7 @@ def calDis(f):
     flist = glob.glob('./data/*f9[6-9][0-9].txt')
     flist = sorted(flist)
     for ll in range(len(flist)):
-        #print(flist[ll])
+        print(flist[ll])
         file = open(flist[ll])
         contents = file.readlines()
         for i in range(len(contents)):
@@ -292,6 +293,7 @@ def cluster_cocycle(ncluster, f):
 
 if __name__ == '__main__':
     for f in [5, 3.5, 6]:
+        print("Start running cocycle for filtration = " + str(f))
         calDis(f)  # calculate distance matrix for each structure and save data
         cal_uGH_matrix() # calculate pairwise uGH between structures and save the matrix
         cluster_cocycle(3, f) # cluster data according to uGH matrix
