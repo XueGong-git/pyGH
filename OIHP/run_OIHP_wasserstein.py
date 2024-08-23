@@ -274,8 +274,8 @@ def cluster_wm(ncluster, f):
     plt.close()
 
 if __name__ == '__main__':
-    f = 4
-    build_wm_multiprocessing()
-    build_uGH(f)
-    cluster_wm(3, f)
-    cluster_wm(9, f)
+    for f in [4, 5, 3.5, 6]:
+        build_wm_multiprocessing()
+        build_uGH(f)
+        cluster_wm(3, f)
+        cluster_wm(9, f)

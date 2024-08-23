@@ -186,7 +186,7 @@ def calDis(f):
         all_eigvec.append(eigvec)     
         gnm, v1 = GHM(all_eigval, all_eigvec)
         np.save("./data/processed/" + flist[ll][7:-4]+"_gnm_l1norms.npy", gnm)
-        np.save("./data/processed/" + flist[ll][7:-4]+"_cleanvec.npy", v1)
+        #np.save("./data/processed/" + flist[ll][7:-4]+"_cleanvec.npy", v1)
 
 def cal_uGH_matrix(f):
 
@@ -377,56 +377,11 @@ def visualize_data(ll, f):
 
 
 if __name__ == '__main__':
-    f = 5
-    calDis(f)  # calculate distance matrix for each structure and save data, takes ~ 3 min  
-    cal_uGH_matrix(f) # calculate pairwise uGH between structures and save the matrix
-
-    
-    cluster_l1(3, f) # cluster data according to uGH matrix
-    cluster_l1(9, f) # cluster data according to uGH matrix
-
-    
-    
-    #for ll in range(4, 360, 40):
-    #    visualize_data(ll, f)
-
+    for f in [3.5, 6]:
+        calDis(f)  # calculate distance matrix for each structure and save data, takes ~ 3 min  
+        cal_uGH_matrix(f) # calculate pairwise uGH between structures and save the matrix
+        cluster_l1(3, f) # cluster data according to uGH matrix
+        cluster_l1(9, f) # cluster data according to uGH matrix
         
-    
-    #flist = glob.glob('./data/*f9[6-9][0-9].txt')
-    #flist = sorted(flist)
-    
-    #for ll in range(len(flist)):
-    #for ll in [4]:
-    #    print(ll)
-
-
-    # load gnm matrix
-    #filename1 = "./data/processed/" + flist[ll][7:-4]+"_gnm_l1norms2.npy"
-    #filename2 = "./data/processed/" + flist[ll+80][7:-4]+"_gnm_l1norms2.npy"
-
-    #print(filename1)
-    #print(filename2)
-
-    # Load the .npy file
-    #gnm1 = np.load(filename1)
-    #gnm2 = np.load(filename2)
-
-    #eigval = np.load("./data/processed/" + flist[ll][7:-4]+"_eigval.npy")
-    #eigvec = np.load("./data/processed/" + flist[ll][7:-4]+"_eigvec.npy")
-    #cleanvec =  np.load("./data/processed/" + flist[ll][7:-4]+"_cleanvec.npy")
-    #print(str(cleanvec.shape[1])+" independent cycles")
-    #print(np.sum(np.abs(cleanvec[:, 0]-cleanvec[:, 1])))
-    #print(str(len(gnm1[0]))+ " cycles in structure 1; ", str(len(gnm2[0]))+ " cycles in structure 2. ", )
-    #print(uGH(gnm1[0], gnm2[0]))
-    
-    
-    # Plot the heatmap
-    #plt.imshow(gnm[0], cmap='hot', interpolation='nearest')
-    #plt.colorbar()  # Add a colorbar to the heatmap
-    #plt.title('Heatmap of the Data')
-    #plt.show()
-    
-    
-    
-    
-    
+        
+        

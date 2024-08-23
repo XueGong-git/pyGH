@@ -291,25 +291,11 @@ def cluster_cocycle(ncluster, f):
 
 
 if __name__ == '__main__':
-    f = 3
-    #calDis(f)  # calculate distance matrix for each structure and save data
-    #cal_uGH_matrix() # calculate pairwise uGH between structures and save the matrix
-    cluster_cocycle(3, f) # cluster data according to uGH matrix
-    cluster_cocycle(9, f) # cluster data according to uGH matrix
+    for f in [5, 3.5, 6]:
+        calDis(f)  # calculate distance matrix for each structure and save data
+        cal_uGH_matrix() # calculate pairwise uGH between structures and save the matrix
+        cluster_cocycle(3, f) # cluster data according to uGH matrix
+        cluster_cocycle(9, f) # cluster data according to uGH matrix
 
     
-    #flist = glob.glob('./data/*f9[6-9][0-9].txt')
-    #flist = sorted(flist)
     
-    #for ll in range(len(flist)):
-    #for ll in [4]:
-    #    print(ll)
-    #    visualize_data(ll)
-
-
-    #ll = 1   
-    # load gnm matrix
-    #filename = "./data/processed/" + flist[ll][7:-4]+"_gnm_cocycle2.npy"
-    #print(filename)
-    # Load the .npy file
-    #gnm = np.load(filename)
