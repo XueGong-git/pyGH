@@ -7,7 +7,7 @@ import os
 
 
 
-def visualize_data(ll, f):
+def visualize_data(ll, f, sc = 'alpha', persistence = False, barcode = False):
     # load coordinates
     flist = glob.glob('./data/*f9[6-9][0-9].txt')
     flist = sorted(flist)
@@ -38,22 +38,50 @@ def visualize_data(ll, f):
     # construct simplicial complex
     # Example 3D point cloud
     
+    if sc == 'vr':
     # Create a Rips complex from the points, with a max edge length of 1.5
-    #rips_complex = gd.RipsComplex(points=points, max_edge_length=4.3)
-    #simplex_tree = rips_complex.create_simplex_tree(max_dimension=2)
-    #edges = [simplex for simplex, _ in simplex_tree.get_skeleton(1) if len(simplex) == 2]
-    #triangles = [simplex for simplex, _ in simplex_tree.get_skeleton(2) if len(simplex) == 3]
-    #print(str(len(edges)) + " edges and " + str(len(triangles)) + " triangles")
+        rips_complex = gd.RipsComplex(points=points, max_edge_length=f)
+        simplex_tree = rips_complex.create_simplex_tree(max_dimension=3)
+        edges = [simplex for simplex, _ in simplex_tree.get_skeleton(1) if len(simplex) == 2]
+        triangles = [simplex for simplex, _ in simplex_tree.get_skeleton(2) if len(simplex) == 3]
     
+    elif sc == 'alpha':
     # Alpha complex
-    alpha_complex = gd.AlphaComplex(points=points)
-    simplex_tree = alpha_complex.create_simplex_tree()
-    filtered_simplices = [ simplex for simplex in simplex_tree.get_filtration() if simplex[1] <= f]
-    # Extract edges (1-simplices) and triangles
-    edges = [simplex[0] for simplex in filtered_simplices if len(simplex[0]) == 2]
-    triangles = [simplex[0] for simplex in filtered_simplices if len(simplex[0]) == 3]
+        alpha_complex = gd.AlphaComplex(points=points)
+        simplex_tree = alpha_complex.create_simplex_tree()
+        filtered_simplices = [ simplex for simplex in simplex_tree.get_filtration() if simplex[1] <= f]
+        # Extract edges (1-simplices) and triangles
+        edges = [simplex[0] for simplex in filtered_simplices if len(simplex[0]) == 2]
+        triangles = [simplex[0] for simplex in filtered_simplices if len(simplex[0]) == 3]
 
+    if persistence == True:
+
+        # Compute persistence
+        persistence = simplex_tree.persistence()    
+        # Plot persistence diagram
+        gd.plot_persistence_diagram(persistence)
+
+        plt.title(flist[ll][7:-4])
+        output_dir = 'figure'
+        output_path = os.path.join(output_dir, flist[ll][7:-4]+ "_persistence.png")
+        plt.tight_layout()
+        plt.savefig(output_path, dpi=150)
+        plt.show()
+        plt.close()
     
+    if barcode == True:
+    
+        # Plot persistence diagram
+        gd.plot_persistence_barcode(persistence)
+        plt.xlim(0, 15)  # Set the limits for the x-axis (e.g., 0 to 2)
+
+        plt.title(flist[ll][7:-4])
+        output_dir = 'figure'
+        output_path = os.path.join(output_dir, flist[ll][7:-4]+ "_barcode.png")
+        plt.tight_layout()
+        plt.savefig(output_path, dpi=150)
+        plt.show()
+        plt.close()
     
     # visualize the simplicial complex
     
@@ -100,10 +128,12 @@ def visualize_data(ll, f):
     plt.close()
 
 
+
+
 if __name__ == '__main__':
-    f = 3    
+    f = 4    
     for ll in range(4, 360, 40):
-        visualize_data(ll, f)
+        visualize_data(ll, f, sc = 'alpha', persistence = True, barcode = True)
 
         
     
