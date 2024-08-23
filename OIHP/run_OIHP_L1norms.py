@@ -364,22 +364,22 @@ def visualize_data(ll, f):
     text_str = str(len(x_coords) ) + " nodes," + str(len(edges)) + " edges, " + str(len(triangles)) + " triangles"
     print(text_str)
     # Set a title
-    ax.set_title(flist[ll][7:-4])
+    ax.set_title(flist[ll][7:-4]+ "_fil_" + str(f))
 
     ax.text(x=-20, y=-15, z=31, s=text_str, fontsize=12, color='black')  # Place text at coordinates (2, 5, 8)
 
     # Show the plot
     output_dir = 'figure'
-    output_path = os.path.join(output_dir, flist[ll][7:-4]+ ".png")
+    output_path = os.path.join(output_dir, flist[ll][7:-4]+ "_fil_" + str(f) +".png")
     plt.savefig(output_path, dpi=150)
     plt.show()
     plt.close()
 
 
 if __name__ == '__main__':
-    f = 4
-    #calDis(f)  # calculate distance matrix for each structure and save data, takes ~ 3 min  
-    #cal_uGH_matrix(f) # calculate pairwise uGH between structures and save the matrix
+    f = 5
+    calDis(f)  # calculate distance matrix for each structure and save data, takes ~ 3 min  
+    cal_uGH_matrix(f) # calculate pairwise uGH between structures and save the matrix
 
     
     cluster_l1(3, f) # cluster data according to uGH matrix
@@ -391,7 +391,6 @@ if __name__ == '__main__':
     #    visualize_data(ll, f)
 
         
-    #ll = 2
     
     #flist = glob.glob('./data/*f9[6-9][0-9].txt')
     #flist = sorted(flist)
