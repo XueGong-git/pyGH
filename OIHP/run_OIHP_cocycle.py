@@ -306,8 +306,8 @@ if __name__ == '__main__':
     for f in [3]:
     #for f in ['multi']:
         #print("Start running cocycle for filtration = " + str(f))
-        #calDis(f)  # calculate distance matrix for each structure and save data
-        #cal_uGH_matrix() # calculate pairwise uGH between structures and save the matrix
+        calDis(f)  # calculate distance matrix for each structure and save data
+        cal_uGH_matrix() # calculate pairwise uGH between structures and save the matrix
         cluster_cocycle(3, f) # cluster data according to uGH matrix
         cluster_cocycle(9, f) # cluster data according to uGH matrix
 
