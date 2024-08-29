@@ -131,9 +131,9 @@ def visualize_data(ll, f, sc = 'alpha', persistence = False, barcode = False):
 
 
 if __name__ == '__main__':
-    f = 4    
+    f = 3    
     for ll in range(4, 360, 40):
-        visualize_data(ll, f, sc = 'alpha', persistence = True, barcode = True)
+        visualize_data(ll, f, sc = 'alpha', persistence = False, barcode = False)
 
         
     

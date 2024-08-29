@@ -242,7 +242,18 @@ def cal_uGH_matrix():
     
     
 def cluster_cocycle(ncluster, f):
-    mat = np.load("./results/GH_OIHP_all_cocycle_fil_"+ str(f) +".npy", allow_pickle=True)
+    
+    if f == 'multi':
+        #mat_3 = np.load("./results/GH_OIHP_all_cocycle_fil_3.npy", allow_pickle=True)
+        mat_3_5 = np.load("./results/GH_OIHP_all_cocycle_fil_3.5.npy", allow_pickle=True)
+        mat_4 = np.load("./results/GH_OIHP_all_cocycle_fil_4.npy", allow_pickle=True)
+        mat_5 = np.load("./results/GH_OIHP_all_cocycle_fil_5.npy", allow_pickle=True)
+        mat_6 = np.load("./results/GH_OIHP_all_cocycle_fil_6.npy", allow_pickle=True)
+        mat = np.concatenate(( mat_3_5, mat_4, mat_5, mat_6), axis=1)
+        
+    else:
+        mat = np.load("./results/GH_OIHP_all_cocycle_fil_"+ str(f) +".npy", allow_pickle=True)
+        
     # plot mat as heat map and save image
     plt.imshow(mat, cmap='coolwarm', interpolation='nearest')
     plt.colorbar()  # Add a colorbar to show the scale
@@ -292,10 +303,11 @@ def cluster_cocycle(ncluster, f):
 
 
 if __name__ == '__main__':
-    for f in [5, 3.5, 6]:
-        print("Start running cocycle for filtration = " + str(f))
-        calDis(f)  # calculate distance matrix for each structure and save data
-        cal_uGH_matrix() # calculate pairwise uGH between structures and save the matrix
+    for f in [3]:
+    #for f in ['multi']:
+        #print("Start running cocycle for filtration = " + str(f))
+        #calDis(f)  # calculate distance matrix for each structure and save data
+        #cal_uGH_matrix() # calculate pairwise uGH between structures and save the matrix
         cluster_cocycle(3, f) # cluster data according to uGH matrix
         cluster_cocycle(9, f) # cluster data according to uGH matrix
 

@@ -229,8 +229,17 @@ def cal_uGH_matrix(f):
     
 def cluster_l1(ncluster, f):
     
-    mat = np.load("./results/GH_OIHP_all_l1norm_fil_"+ str(f) +".npy", allow_pickle=True)
-    
+    if f == 'multi':
+        mat_3 = np.load("./results/GH_OIHP_all_l1norm_fil_3.npy", allow_pickle=True)
+        mat_3_5 = np.load("./results/GH_OIHP_all_l1norm_fil_3.5.npy", allow_pickle=True)
+        mat_4 = np.load("./results/GH_OIHP_all_l1norm_fil_4.npy", allow_pickle=True)
+        mat_5 = np.load("./results/GH_OIHP_all_l1norm_fil_5.npy", allow_pickle=True)
+        mat_6 = np.load("./results/GH_OIHP_all_l1norm_fil_6.npy", allow_pickle=True)
+        mat = np.concatenate((mat_3, mat_3_5, mat_4, mat_5, mat_6), axis=1)
+
+    else:
+        mat = np.load("./results/GH_OIHP_all_l1norm_fil_"+ str(f) +".npy", allow_pickle=True)
+
     # plot mat as heat map and save mimage
     plt.imshow(mat, cmap='coolwarm', interpolation='nearest')
     plt.colorbar()  # Add a colorbar to show the scale
@@ -377,10 +386,10 @@ def visualize_data(ll, f):
 
 
 if __name__ == '__main__':
-    for f in [5, 3.5, 6]:
-        print("Start running L1-norm for filtration = " + str(f))
-        calDis(f)  # calculate distance matrix for each structure and save data, takes ~ 3 min  
-        cal_uGH_matrix(f) # calculate pairwise uGH between structures and save the matrix
+    for f in ['multi']:
+        #print("Start running L1-norm for filtration = " + str(f))
+        #calDis(f)  # calculate distance matrix for each structure and save data, takes ~ 3 min  
+        #cal_uGH_matrix(f) # calculate pairwise uGH between structures and save the matrix
         cluster_l1(3, f) # cluster data according to uGH matrix
         cluster_l1(9, f) # cluster data according to uGH matrix
         
