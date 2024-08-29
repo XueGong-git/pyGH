@@ -151,7 +151,7 @@ def plot_uGH(ux, uy):
 
     hierarchy.set_link_color_palette(['tab:blue', 'tab:orange', 'tab:green', 'tab:pink', 'tab:purple'])
     fig, axes = plt.subplots(2, 1, figsize=(3, 8), dpi=200)
-    dn1 = dendrogram(lnkx, ax=axes[0], above_threshold_color='tab:green',
+    dn1 = dendrogram(lnkx, ax=axes[0], above_threshold_color='tab:green', 
                             orientation='right', color_threshold = U + 1e-16)
     axes[0].set_title('X')
     axes[0].set_xlim([0, diam+.5])
