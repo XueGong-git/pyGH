@@ -390,7 +390,7 @@ if __name__ == '__main__':
         #print("Start running L1-norm for filtration = " + str(f))
         #calDis(f)  # calculate distance matrix for each structure and save data, takes ~ 3 min  
         #cal_uGH_matrix(f) # calculate pairwise uGH between structures and save the matrix
-        cluster_l1(3, f) # cluster data according to uGH matrix
+        #cluster_l1(3, f) # cluster data according to uGH matrix
         cluster_l1(9, f) # cluster data according to uGH matrix
         
         
