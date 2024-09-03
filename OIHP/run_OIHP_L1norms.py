@@ -137,8 +137,8 @@ def _uGH(dist_mat, i, j):
     return op
 
 ### Compute simplicial complices and eigenvalues, save eigenvalues and eigen vectors to npy file
-def calDis(f):
-    flist = glob.glob('./data/*f9[6-9][0-9].txt')
+def calDis(f, shape):
+    flist = glob.glob('./data/'+shape+'/*f*.txt')
     flist = sorted(flist)
     for ll in range(len(flist)):
         print(flist[ll])
@@ -188,9 +188,9 @@ def calDis(f):
         np.save("./data/processed/" + flist[ll][7:-4]+"_gnm_l1norms.npy", gnm)
         #np.save("./data/processed/" + flist[ll][7:-4]+"_cleanvec.npy", v1)
 
-def cal_uGH_matrix(f):
+def cal_uGH_matrix(f, shape):
 
-    flist = glob.glob('./data/processed/*f9[6-9][0-9]_gnm_l1norms.npy')
+    flist = glob.glob('./data/processed/'+shape+'/*f*_gnm_l1norms.npy')
     flist = sorted(flist)
     
     dist_mat = []
@@ -224,10 +224,10 @@ def cal_uGH_matrix(f):
     mat += np.transpose(np.tril(mat))
     #print(mat)
     
-    np.save("./results/GH_OIHP_all_l1norm_fil_"+ str(f) +".npy", mat)
+    np.save("./results/GH_OIHP_"+ shape +"_l1norm_fil_"+ str(f) +".npy", mat)
     
     
-def cluster_l1(ncluster, f):
+def cluster_l1(ncluster, f, shape):
     
     if f == 'multi':
         mat_3 = np.load("./results/GH_OIHP_all_l1norm_fil_3.npy", allow_pickle=True)
@@ -238,12 +238,12 @@ def cluster_l1(ncluster, f):
         mat = np.concatenate((mat_3, mat_3_5, mat_4, mat_5, mat_6), axis=1)
 
     else:
-        mat = np.load("./results/GH_OIHP_all_l1norm_fil_"+ str(f) +".npy", allow_pickle=True)
+        mat = np.load("./results/GH_OIHP_"+shape+"_l1norm_fil_"+ str(f) +".npy", allow_pickle=True)
 
     # plot mat as heat map and save mimage
     plt.imshow(mat, cmap='coolwarm', interpolation='nearest')
     plt.colorbar()  # Add a colorbar to show the scale
-    plt.savefig('./results/uGH_l1_fil_'+ str(f) + '.png', dpi=300, bbox_inches='tight')  # Save the figure with high resolution
+    plt.savefig('./results/uGH_l1_'+shape+'_fil_'+ str(f) + '.png', dpi=300, bbox_inches='tight')  # Save the figure with high resolution
     plt.show()  # Display the plot
     
     feat = mat
@@ -286,7 +286,7 @@ def cluster_l1(ncluster, f):
     plt.axis('equal')
     plt.xticks([])
     plt.yticks([])
-    plt.savefig(f"./results/tsne_l1norm_{ncluster}_clusters_fil_"+ str(f) +".png", dpi=200)
+    plt.savefig(f"./results/tsne_l1norm_{ncluster}_clusters_"+shape+"_fil_"+ str(f) +".png", dpi=200)
     plt.show()
     plt.close()
 
@@ -386,12 +386,13 @@ def visualize_data(ll, f):
 
 
 if __name__ == '__main__':
-    for f in ['multi']:
-        #print("Start running L1-norm for filtration = " + str(f))
-        #calDis(f)  # calculate distance matrix for each structure and save data, takes ~ 3 min  
-        #cal_uGH_matrix(f) # calculate pairwise uGH between structures and save the matrix
-        #cluster_l1(3, f) # cluster data according to uGH matrix
-        cluster_l1(9, f) # cluster data according to uGH matrix
+    for shape in ['cubic', 'orthohombic', 'tetragonal']:
+        for f in [3, 3.5, 4, 5, 6]:
+            print("Start running L1-norm for filtration = " + str(f) + " and shape " + shape)
+            calDis(f, shape)  # calculate distance matrix for each structure and save data, takes ~ 3 min  
+            cal_uGH_matrix(f, shape) # calculate pairwise uGH between structures and save the matrix
+            cluster_l1(3, f, shape) # cluster data according to uGH matrix
+            #cluster_l1(9, f, shape) # cluster data according to uGH matrix
         
         
         
