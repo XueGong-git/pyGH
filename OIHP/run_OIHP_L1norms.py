@@ -138,7 +138,7 @@ def _uGH(dist_mat, i, j):
 
 ### Compute simplicial complices and eigenvalues, save eigenvalues and eigen vectors to npy file
 def calDis(f, shape):
-    flist = glob.glob('./data/'+shape+'/*f*.txt')
+    flist = glob.glob('./data/'+shape+'/*f9[0-9][0-9].txt')
     flist = sorted(flist)
     for ll in range(len(flist)):
         print(flist[ll])
@@ -190,7 +190,9 @@ def calDis(f, shape):
 
 def cal_uGH_matrix(f, shape):
 
-    flist = glob.glob('./data/processed/'+shape+'/*f*_gnm_l1norms.npy')
+    flist = glob.glob('./data/processed/'+shape+'/*f9[0-9][0-9]_gnm_l1norms.npy')
+    
+    #flist = glob.glob('./data/processed/'+shape+'/*f[8-9][0-9][0-9]_gnm_l1norms.npy')
     flist = sorted(flist)
     
     dist_mat = []
@@ -386,13 +388,23 @@ def visualize_data(ll, f):
 
 
 if __name__ == '__main__':
-    for shape in ['cubic', 'orthohombic', 'tetragonal']:
-        for f in [3, 3.5, 4, 5, 6]:
+    for f in [3, 3.5, 4, 5, 6]:
+        for shape in ['cubic', 'orthohombic', 'tetragonal']:
+            start_time = time.time()
             print("Start running L1-norm for filtration = " + str(f) + " and shape " + shape)
             calDis(f, shape)  # calculate distance matrix for each structure and save data, takes ~ 3 min  
             cal_uGH_matrix(f, shape) # calculate pairwise uGH between structures and save the matrix
-            cluster_l1(3, f, shape) # cluster data according to uGH matrix
+            #cluster_l1(3, f, shape) # cluster data according to uGH matrix
             #cluster_l1(9, f, shape) # cluster data according to uGH matrix
-        
+            # Record the end time
+            end_time = time.time()
+
+            # Calculate the elapsed time
+            elapsed_time = end_time - start_time
+            print("Finish running L1-norm for filtration = " + str(f) + " and shape " + shape)
+            print(f"Time elapsed: {elapsed_time:.2f} seconds")
+
+    
+    
         
         
