@@ -389,7 +389,7 @@ def visualize_data(ll, f):
 
 if __name__ == '__main__':
     for f in [3, 3.5, 4, 5, 6]:
-        for shape in ['cubic', 'orthohombic', 'tetragonal']:
+        for shape in ['orthohombic', 'tetragonal']:
             start_time = time.time()
             print("Start running L1-norm for filtration = " + str(f) + " and shape " + shape)
             calDis(f, shape)  # calculate distance matrix for each structure and save data, takes ~ 3 min  
