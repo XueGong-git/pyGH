@@ -232,11 +232,11 @@ def cal_uGH_matrix(f, shape):
 def cluster_l1(ncluster, f, shape):
     
     if f == 'multi':
-        mat_3 = np.load("./results/GH_OIHP_all_l1norm_fil_3.npy", allow_pickle=True)
-        mat_3_5 = np.load("./results/GH_OIHP_all_l1norm_fil_3.5.npy", allow_pickle=True)
-        mat_4 = np.load("./results/GH_OIHP_all_l1norm_fil_4.npy", allow_pickle=True)
-        mat_5 = np.load("./results/GH_OIHP_all_l1norm_fil_5.npy", allow_pickle=True)
-        mat_6 = np.load("./results/GH_OIHP_all_l1norm_fil_6.npy", allow_pickle=True)
+        mat_3 = np.load("./results/GH_OIHP_"+ shape +"_l1norm_fil_3.npy", allow_pickle=True)
+        mat_3_5 = np.load("./results/GH_OIHP_"+ shape +"_l1norm_fil_3.5.npy", allow_pickle=True)
+        mat_4 = np.load("./results/GH_OIHP_"+ shape +"_l1norm_fil_4.npy", allow_pickle=True)
+        mat_5 = np.load("./results/GH_OIHP_"+ shape +"_l1norm_fil_5.npy", allow_pickle=True)
+        mat_6 = np.load("./results/GH_OIHP_"+ shape +"_l1norm_fil_6.npy", allow_pickle=True)
         mat = np.concatenate((mat_3, mat_3_5, mat_4, mat_5, mat_6), axis=1)
 
     else:
@@ -388,21 +388,21 @@ def visualize_data(ll, f):
 
 
 if __name__ == '__main__':
-    for f in [3, 3.5, 4, 5, 6]:
-        for shape in ['cubic']:
-            start_time = time.time()
-            print("Start running L1-norm for filtration = " + str(f) + " and shape " + shape)
-            calDis(f, shape)  # calculate distance matrix for each structure and save data, takes ~ 3 min  
-            cal_uGH_matrix(f, shape) # calculate pairwise uGH between structures and save the matrix
-            #cluster_l1(3, f, shape) # cluster data according to uGH matrix
+    for f in [3.5, 4, 5, 6]:
+        for shape in ['orthohombic']:
+            #start_time = time.time()
+            #print("Start running L1-norm for filtration = " + str(f) + " and shape " + shape)
+            #calDis(f, shape)  # calculate distance matrix for each structure and save data, takes ~ 3 min  
+            #cal_uGH_matrix(f, shape) # calculate pairwise uGH between structures and save the matrix
+            cluster_l1(3, f, shape) # cluster data according to uGH matrix
             #cluster_l1(9, f, shape) # cluster data according to uGH matrix
             # Record the end time
-            end_time = time.time()
+            #end_time = time.time()
 
             # Calculate the elapsed time
-            elapsed_time = end_time - start_time
+            #elapsed_time = end_time - start_time
             print("Finish running L1-norm for filtration = " + str(f) + " and shape " + shape)
-            print(f"Time elapsed: {elapsed_time:.2f} seconds")
+            #print(f"Time elapsed: {elapsed_time:.2f} seconds")
 
     
     
