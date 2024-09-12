@@ -204,7 +204,7 @@ def cal_uGH_matrix(f, shape):
         dist_mat.append(data[0])
     
     mat = np.zeros((len(dist_mat), len(dist_mat)))
-
+    
     pairs = []
     for i in range(len(mat)):
         for j in range(0, i):
@@ -232,27 +232,29 @@ def cal_uGH_matrix(f, shape):
 def cluster_l1(ncluster, f, shape):
     
     if f == 'multi':
-        mat_3 = np.load("./results/GH_OIHP_"+ shape +"_l1norm_fil_3.npy", allow_pickle=True)
-        mat_3_5 = np.load("./results/GH_OIHP_"+ shape +"_l1norm_fil_3.5.npy", allow_pickle=True)
-        mat_4 = np.load("./results/GH_OIHP_"+ shape +"_l1norm_fil_4.npy", allow_pickle=True)
-        mat_5 = np.load("./results/GH_OIHP_"+ shape +"_l1norm_fil_5.npy", allow_pickle=True)
-        mat_6 = np.load("./results/GH_OIHP_"+ shape +"_l1norm_fil_6.npy", allow_pickle=True)
-        mat = np.concatenate((mat_3, mat_3_5, mat_4, mat_5, mat_6), axis=1)
+        #mat_3 = np.load("./results/GH_OIHP_"+ shape +"_l1norm_fil_3.npy", allow_pickle=True)[:300, :300]
+        mat_3_5 = np.load("./results/GH_OIHP_"+ shape +"_l1norm_fil_3.5.npy", allow_pickle=True)[:300, :300]
+        mat_4 = np.load("./results/GH_OIHP_"+ shape +"_l1norm_fil_4.npy", allow_pickle=True)[:300, :300]
+        mat_5 = np.load("./results/GH_OIHP_"+ shape +"_l1norm_fil_5.npy", allow_pickle=True)[:300, :300]
+        mat_6 = np.load("./results/GH_OIHP_"+ shape +"_l1norm_fil_6.npy", allow_pickle=True)[:300, :300]
+        mat = np.concatenate(( mat_3_5, mat_4, mat_5, mat_6), axis=1)
 
     else:
         mat = np.load("./results/GH_OIHP_"+shape+"_l1norm_fil_"+ str(f) +".npy", allow_pickle=True)
 
+
+    #feat = mat
+    feat = mat[:300, :300]
+
     # plot mat as heat map and save mimage
-    plt.imshow(mat, cmap='coolwarm', interpolation='nearest')
+    plt.imshow(feat, cmap='coolwarm', interpolation='nearest')
     plt.colorbar()  # Add a colorbar to show the scale
     plt.savefig('./results/uGH_l1_'+shape+'_fil_'+ str(f) + '.png', dpi=300, bbox_inches='tight')  # Save the figure with high resolution
     plt.show()  # Display the plot
     
-    feat = mat
-
-    
+    ndata = 300
     frd = 10
-    frs = 360//ncluster + 10
+    frs = ndata//ncluster + 10
 
 
 
@@ -388,8 +390,9 @@ def visualize_data(ll, f):
 
 
 if __name__ == '__main__':
-    for f in [3.5, 4, 5, 6]:
-        for shape in ['orthohombic']:
+    for f in [6]:
+    #for f in ['multi']:
+        for shape in ['cubic', 'orthohombic', 'tetragonal']: #[, 'orthohombic']:
             #start_time = time.time()
             #print("Start running L1-norm for filtration = " + str(f) + " and shape " + shape)
             #calDis(f, shape)  # calculate distance matrix for each structure and save data, takes ~ 3 min  
