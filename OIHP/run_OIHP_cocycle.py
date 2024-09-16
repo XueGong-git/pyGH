@@ -151,8 +151,8 @@ def _uGH(dist_mat, i, j):
     return op
 
 
-def calDis(f):
-    flist = glob.glob('./data/*f9[6-9][0-9].txt')
+def calDis(f, shape):
+    flist = glob.glob('./data/'+shape+'/*f9[0-9][0-9].txt')
     flist = sorted(flist)
     for ll in range(len(flist)):
         print(flist[ll])
@@ -202,9 +202,9 @@ def calDis(f):
         np.save("./data/processed/" + flist[ll][7:-4]+"_gnm_cocycle.npy", gnm)
         #np.save("./data/processed/" + flist[ll][7:-4]+"_cleanvec.npy", v1)
 
-def cal_uGH_matrix():
+def cal_uGH_matrix(f, shape):
 
-    flist = glob.glob('./data/processed/*f9[6-9][0-9]_gnm_cocycle.npy')
+    flist = glob.glob('./data/processed/'+shape+'/*f9[0-9][0-9]_gnm_cocycle.npy')
     flist = sorted(flist)
     
     dist_mat = []
@@ -238,21 +238,22 @@ def cal_uGH_matrix():
     mat += np.transpose(np.tril(mat))
     #print(mat)
     
-    np.save("./results/GH_OIHP_all_cocycle_fil_"+ str(f) +".npy", mat)
+    np.save("./results/GH_OIHP_"+ shape +"_cocycle_fil_"+ str(f) +".npy", mat)
     
     
-def cluster_cocycle(ncluster, f):
+def cluster_l1(ncluster, f, shape):
     
     if f == 'multi':
-        #mat_3 = np.load("./results/GH_OIHP_all_cocycle_fil_3.npy", allow_pickle=True)
-        mat_3_5 = np.load("./results/GH_OIHP_all_cocycle_fil_3.5.npy", allow_pickle=True)
-        mat_4 = np.load("./results/GH_OIHP_all_cocycle_fil_4.npy", allow_pickle=True)
-        mat_5 = np.load("./results/GH_OIHP_all_cocycle_fil_5.npy", allow_pickle=True)
-        mat_6 = np.load("./results/GH_OIHP_all_cocycle_fil_6.npy", allow_pickle=True)
+        #mat_3 = np.load("./results/GH_OIHP_"+ shape +"_l1norm_fil_3.npy", allow_pickle=True)[:300, :300]
+        mat_3_5 = np.load("./results/GH_OIHP_"+ shape +"_cocycle_fil_3.5.npy", allow_pickle=True)
+        mat_4 = np.load("./results/GH_OIHP_"+ shape +"_cocycle_fil_4.npy", allow_pickle=True)
+        mat_5 = np.load("./results/GH_OIHP_"+ shape +"_cocycle_fil_5.npy", allow_pickle=True)
+        mat_6 = np.load("./results/GH_OIHP_"+ shape +"_cocycle_fil_6.npy", allow_pickle=True)
         mat = np.concatenate(( mat_3_5, mat_4, mat_5, mat_6), axis=1)
-        
+
     else:
-        mat = np.load("./results/GH_OIHP_all_cocycle_fil_"+ str(f) +".npy", allow_pickle=True)
+        mat = np.load("./results/GH_OIHP_"+shape+"_cocycle_fil_"+ str(f) +".npy", allow_pickle=True)
+
         
     # plot mat as heat map and save image
     plt.imshow(mat, cmap='coolwarm', interpolation='nearest')
@@ -264,8 +265,10 @@ def cluster_cocycle(ncluster, f):
     
     
     feat = mat    
+    
+    ndata = 300
     frd = 10
-    frs = 360//ncluster + 10
+    frs = ndata//ncluster + 10
     values = TSNE(n_components=2, verbose=2).fit_transform(feat)
     
     #values = umap.UMAP(random_state=42).fit_transform(feat)
@@ -297,19 +300,22 @@ def cluster_cocycle(ncluster, f):
     plt.axis('equal')
     plt.xticks([])
     plt.yticks([])
-    plt.savefig(f"./results/tsne_cocycle_{ncluster}_clusters_fil_"+ str(f) +".png", dpi=200)
+    plt.savefig(f"./results/tsne_cocycle_{ncluster}_clusters_{shape}_fil_"+ str(f) +".png", dpi=200)
     plt.show()
     plt.close()
 
 
 if __name__ == '__main__':
-    for f in [3]:
+    for f in [3, 3.5, 4, 5, 6]:
+        for shape in ['cubic', 'orthohombic', 'tetragonal']: #[, 'orthohombic']:
+
     #for f in ['multi']:
-        print("Start running cocycle for filtration = " + str(f))
-        calDis(f)  # calculate distance matrix for each structure and save data
-        cal_uGH_matrix() # calculate pairwise uGH between structures and save the matrix
-        cluster_cocycle(3, f) # cluster data according to uGH matrix
-        cluster_cocycle(9, f) # cluster data according to uGH matrix
+            print("Start running cocycle for filtration = " + str(f))
+            calDis(f, shape)  # calculate distance matrix for each structure and save data
+            cal_uGH_matrix(f, shape) # calculate pairwise uGH between structures and save the matrix
+            #cluster_cocycle(3, f, shape) # cluster data according to uGH matrix
+            #cluster_cocycle(9, f, shape) # cluster data according to uGH matrix
+            print("Finish running cocycle for filtration = " + str(f))
 
     
     
