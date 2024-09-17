@@ -76,10 +76,10 @@ def convertpdb(filename):
     a = {'PRO': [{'atom': atomName, 'typ': element, 'pos': np.transpose([X,Y,Z])}]}
     np.savez(filename[:-4]+".npz", **a)
 
-def cluster_coords(ncluster = None):
+def cluster_coords(ncluster, shape):
 
     coords = []
-    flist = glob.glob('./data/*f9[6-9][0-9].txt')
+    flist = glob.glob('./data/'+shape+'/*f9[0-9][0-9].txt')
     flist = sorted(flist)
     for ll in range(len(flist)):
         print(flist[ll])
@@ -119,20 +119,22 @@ def cluster_coords(ncluster = None):
         plt.scatter(values[8*(frs-frd):9*(frs-frd),0], values[8*(frs-frd):9*(frs-frd),1],  marker='.',color='tab:olive', alpha=0.75,  linewidth=0.5, s=20, label="I-Tetra")
 
     if ncluster == 3:
-        plt.scatter(values[:(frs-frd),0], values[:(frs-frd),1], marker='.', color='tab:blue', alpha=0.75, linewidth=.5, s=20, label="Br")
-        plt.scatter(values[(frs-frd):2*(frs-frd),0], values[(frs-frd):2*(frs-frd),1], marker='.', color='tab:orange', alpha=0.75,  linewidth=0.5, s=20, label="Cl")
-        plt.scatter(values[2*(frs-frd):3*(frs-frd),0], values[2*(frs-frd):3*(frs-frd),1], marker='.', color='tab:green', alpha=0.75,  linewidth=0.5, s=20, label="I")
+        plt.scatter(values[:(frs-frd),0], values[:(frs-frd),1], marker='.', color='tab:blue', alpha=0.75, linewidth=.5, s=40, label="Br")
+        plt.scatter(values[(frs-frd):2*(frs-frd),0], values[(frs-frd):2*(frs-frd),1], marker='.', color='tab:orange', alpha=0.75,  linewidth=0.5, s=40, label="Cl")
+        plt.scatter(values[2*(frs-frd):3*(frs-frd),0], values[2*(frs-frd):3*(frs-frd),1], marker='.', color='tab:green', alpha=0.75,  linewidth=0.5, s=40, label="I")
    
 
     
-    plt.legend(ncol = 3, loc='upper left', handlelength=.5, borderpad=.25, fontsize=10)
+    plt.legend(ncol=ncluster//3, loc='upper right', handlelength=.5, borderpad=.25, fontsize=10, bbox_to_anchor=(1, 1))
     plt.axis('equal')
     plt.xticks([])
     plt.yticks([])
-    plt.savefig(f"tsne_coords_{ncluster}_clusters.png", dpi=200)
+    plt.xlabel('Dimension 1', fontsize=14)
+    plt.ylabel('Dimension 2', fontsize=14)
+    plt.legend(fontsize=12)  # Adjust the fontsize here
+    plt.savefig(f"tsne_coords_{ncluster}_clusters_{shape}.png", dpi=200)
     plt.show()
 
 if __name__ == '__main__':
-    #build_wm_multiprocessing()
-    #build_uGH()
-    cluster_coords(ncluster = 9)
+    for shape in ['cubic', 'orthohombic', 'tetragonal']: #[, 'orthohombic']:
+        cluster_coords(3, shape)
