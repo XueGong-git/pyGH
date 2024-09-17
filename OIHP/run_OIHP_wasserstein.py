@@ -132,7 +132,8 @@ def _uGH(i, j):
     print(op)#, np.shape(dist_mat[i]), np.shape(dist_mat[j]))
     return op
 
-def build_wm(flist, f):
+def build_wm(flist):
+    f = 3.5
     file = open(flist)
     contents = file.readlines()
     for i in range(len(contents)):
@@ -176,27 +177,26 @@ def build_wm(flist, f):
 
 ### Load coordinates and build Wasserstein Distance matrix with multiprocessing
 
-def build_wm_multiprocessing(f):
+def build_wm_multiprocessing(shape):
     # Create a multiprocessing pool
 
-    flist = glob.glob('./data/*f9[6-9][0-9].txt')
+    flist = glob.glob('./data/'+shape+'/*f9[0-9][0-9].txt')
+
     flist = sorted(flist)
     no_threads = mp.cpu_count()
     
-    # Create a partial function with the constant parameter 'f'
-    build_wm_partial = partial(build_wm, f=f)
     
     p = mp.Pool(processes = no_threads)
-    vals = p.map(build_wm_partial, flist)
+    vals = p.map(build_wm, flist)
     p.close()
     p.join()
     
 
 ### generate pairs of structures for calculation of pariwise uGH
 
-def build_uGH(f):
+def build_uGH(shape):
     
-    flist = glob.glob('./data/processed/*f9[6-9][0-9]_wm.npy')
+    flist = glob.glob('./data/processed/' + shape + '/*f9[6-9][0-9]_wm.npy')
     flist = sorted(flist)
     
     dist_mat = []
@@ -229,10 +229,11 @@ def build_uGH(f):
     mat += np.transpose(np.tril(mat))
     #print(mat)
     
-    np.save("./results/GH_OIHP_all_wm_fil_"+ str(f) +".npy", mat)
+    np.save("./results/GH_OIHP_all_wm_" + shape + "fil_"+ str(f) +".npy", mat)
     
 
 def cluster_wm(ncluster, f):
+    
     mat = np.load("./results/GH_OIHP_all_wm_fil_"+ str(f) +".npy", allow_pickle=True)
     
     
@@ -280,9 +281,10 @@ def cluster_wm(ncluster, f):
     plt.close()
 
 if __name__ == '__main__':
-    for f in [3, 4, 5, 3.5, 6]:
-        print("Start running Wasserstein distance for filtration = " + str(f))
-        build_wm_multiprocessing(f)
-        build_uGH(f)
-        cluster_wm(3, f)
-        cluster_wm(9, f)
+    for f in [3.5]:
+        for shape in ['cubic', 'orthohombic', 'tetragonal']: #[, 'orthohombic']:
+            print("Start running Wasserstein distance for filtration = " + str(f))
+            build_wm_multiprocessing(shape)
+            build_uGH(f, shape)
+            #cluster_wm(3, f)
+            #cluster_wm(9, f)
