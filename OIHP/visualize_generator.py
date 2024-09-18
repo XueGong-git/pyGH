@@ -169,25 +169,30 @@ def visualize_data(ll, f, sc = 'alpha', persistence = False, barcode = False):
     # Plot the points
     ax.scatter(x_coords, y_coords, z_coords, color='black', s=5, label='Points')
     
-    value_vector = eigvec[0]
+    value_vector = abs(eigvec[2])
     # Normalize the values to use with the colormap
     norm = plt.Normalize(value_vector.min(), value_vector.max())
-    cmap = cm.viridis  # Choose a colormap, e.g., 'viridis'
+    cmap = cm.seismic  # Choose a colormap, e.g., 'viridis'
     
-    # Plot the edges
-    for i, edge in enumerate(edges):
-        color = cmap(norm(value_vector[i])) 
-        print(color)
-        ax.plot([x_coords[edge[0]], x_coords[edge[1]]], 
-                [y_coords[edge[0]], y_coords[edge[1]]], 
-                [z_coords[edge[0]], z_coords[edge[1]]], color='grey',  alpha=0.5, linewidth=2)
-    
+        
+    # Add a color bar to the figure
+    mappable = cm.ScalarMappable(norm=norm, cmap=cmap)
+    mappable.set_array(value_vector)
+    fig.colorbar(mappable, ax=ax, shrink=0.5, aspect=10)
     
     if len(x_coords) >= 3:
         for triangle in triangles:
             tri_points = np.array([points[triangle[0]], points[triangle[1]], points[triangle[2]]])
-            ax.plot_trisurf(tri_points[:, 0], tri_points[:, 1], tri_points[:, 2], color='blue', alpha=0.5)
+            ax.plot_trisurf(tri_points[:, 0], tri_points[:, 1], tri_points[:, 2], color='lightgrey', alpha=0.5)
 
+
+    # Plot the edges
+    for i, edge in enumerate(edges):
+        color = cmap(norm(value_vector[i])) 
+        ax.plot([x_coords[edge[0]], x_coords[edge[1]]], 
+                [y_coords[edge[0]], y_coords[edge[1]]], 
+                [z_coords[edge[0]], z_coords[edge[1]]], color=color,  alpha=0.5, linewidth=2)
+        
 
     ax.grid(False)
 
@@ -221,12 +226,12 @@ def visualize_data(ll, f, sc = 'alpha', persistence = False, barcode = False):
 
 
 if __name__ == '__main__':
-    f = 4    
-    for ll in [164]: #range(4, 360, 40):
-        print(ll)
-        visualize_data(ll, f, sc = 'alpha', persistence = False, barcode = False)
-
-        
+    for f in [3, 3.5, 4, 5, 6]:
+        for ll in range(4, 360, 40):
+            print(ll)
+            visualize_data(ll, f, sc = 'alpha', persistence = False, barcode = False)
+    
+            
     
 
     
