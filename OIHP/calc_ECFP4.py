@@ -8,24 +8,26 @@ Created on Wed Feb 12 17:12:19 2025
 import glob
 
 from rdkit import Chem
-
 from rdkit.Chem import AllChem
 import matplotlib.pyplot as plt
-
 from rdkit.Chem import MACCSkeys
 import numpy as np
 from sklearn.manifold import TSNE
 from rdkit.Chem import rdFingerprintGenerator
+from sklearn.cluster import KMeans
+from sklearn.metrics.cluster import adjusted_rand_score
 
 
 #smiles = "CCO"  # 乙醇
 shapes = ['cubic', 'orthorhombic', 'tetragonal']
 fingerprint = "MACC"
+ari_score = {}
 
 for shape in shapes:
 
     flist = glob.glob('./MAPbX3_pdb/'+shape+'/*09[0-9][0-9].pdb')
-     
+    flist = sorted(flist)
+
     molecules = [Chem.MolFromPDBFile(file, removeHs=False) for file in flist]
     
     # Generate ECFP4 fingerprints
@@ -43,6 +45,14 @@ for shape in shapes:
     # Convert RDKit ExplicitBitVect to numpy array
     fingerprint_array = np.array([np.asarray(fp) for fp in fingerprints])
     
+    
+    # k-mean clustering
+    kmeans = KMeans(n_clusters=3, random_state=42, n_init=10)
+    y_pred = kmeans.fit_predict(fingerprint_array)
+    y = [1]*100+[2]*100 + [3]*100
+    ari_score[shape] = adjusted_rand_score(y, y_pred)
+    
+    # TSNE
     # Initialize t-SNE with desired parameters
     tsne = TSNE(n_components=2, perplexity=30, learning_rate=200, n_iter=1000, random_state=42)
     
@@ -69,3 +79,7 @@ for shape in shapes:
     plt.savefig(f"tsne_{fingerprint}_3_clusters_{shape}.png", dpi=200)
     plt.show()
     
+
+for key, value in ari_score.items():
+    print(f"shape: {key}, ari: {value}")
+

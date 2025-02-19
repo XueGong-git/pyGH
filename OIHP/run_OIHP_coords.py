@@ -27,6 +27,11 @@ import sys
 from sklearn.feature_selection import VarianceThreshold
 from sklearn.decomposition import PCA, KernelPCA
 from sklearn.manifold import TSNE
+from sklearn.cluster import KMeans
+from sklearn.metrics.cluster import adjusted_rand_score
+
+
+
 simplefilter("ignore", ClusterWarning)
 #import umap.umap_ as umap
 
@@ -91,13 +96,24 @@ def cluster_coords(ncluster, shape):
         coords.append(np.reshape(contents, (len(contents)*3,1)))
 
     
-    frd = 10
-    frs = 40 + 10
     
+
+
+
     #values = PCA(n_components=2).fit_transform(feat)
     #print(values.explained_variance_ratio_)
     
     data = np.reshape(np.array(coords), (len(coords), len(contents)*3))
+    
+    
+    ari_score = {}
+    # k-mean clustering
+    kmeans = KMeans(n_clusters=3, random_state=42, n_init=10)
+    y_pred = kmeans.fit_predict(data)
+    y = [1]*100+[2]*100 + [3]*100
+    ari_score[shape] = adjusted_rand_score(y, y_pred)
+
+    
     values = TSNE(n_components=2, verbose=2).fit_transform(data)
     
     #values = umap.UMAP(random_state=42).fit_transform(feat)
@@ -106,6 +122,9 @@ def cluster_coords(ncluster, shape):
     mpl.rcParams['axes.spines.top'] = False
     
     if ncluster == 9:
+        frd = 0
+        frs = 40
+        
         plt.scatter(values[:(frs-frd),0], values[:(frs-frd),1], marker='.', color='tab:blue', alpha=0.75, linewidth=.5, s=20, label="Br-Cubic")
         plt.scatter(values[(frs-frd):2*(frs-frd),0], values[(frs-frd):2*(frs-frd),1], marker='.', color='tab:orange', alpha=0.75,  linewidth=0.5, s=20, label="Br-Ortho")
         plt.scatter(values[2*(frs-frd):3*(frs-frd),0], values[2*(frs-frd):3*(frs-frd),1], marker='.', color='tab:green', alpha=0.75,  linewidth=0.5, s=20, label="Br-Tetra")
@@ -119,6 +138,9 @@ def cluster_coords(ncluster, shape):
         plt.scatter(values[8*(frs-frd):9*(frs-frd),0], values[8*(frs-frd):9*(frs-frd),1],  marker='.',color='tab:olive', alpha=0.75,  linewidth=0.5, s=20, label="I-Tetra")
 
     if ncluster == 3:
+        frd = 0
+        frs = 100
+        
         plt.scatter(values[:(frs-frd),0], values[:(frs-frd),1], marker='.', color='tab:blue', alpha=0.75, linewidth=.5, s=40, label="Br")
         plt.scatter(values[(frs-frd):2*(frs-frd),0], values[(frs-frd):2*(frs-frd),1], marker='.', color='tab:orange', alpha=0.75,  linewidth=0.5, s=40, label="Cl")
         plt.scatter(values[2*(frs-frd):3*(frs-frd),0], values[2*(frs-frd):3*(frs-frd),1], marker='.', color='tab:green', alpha=0.75,  linewidth=0.5, s=40, label="I")
@@ -134,6 +156,10 @@ def cluster_coords(ncluster, shape):
     plt.legend(fontsize=12)  # Adjust the fontsize here
     plt.savefig(f"tsne_coords_{ncluster}_clusters_{shape}.png", dpi=200)
     plt.show()
+    print("##############################")
+    for key, value in ari_score.items():
+        print(f"shape: {key}, ari: {value}")
+    print("##############################")
 
 if __name__ == '__main__':
     for shape in ['cubic', 'orthohombic', 'tetragonal']: #[, 'orthohombic']:

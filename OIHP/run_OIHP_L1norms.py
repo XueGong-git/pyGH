@@ -33,6 +33,8 @@ import plotly.graph_objects as go
 from mpl_toolkits.mplot3d import Axes3D
 import os
 import time
+from sklearn.cluster import KMeans
+from sklearn.metrics.cluster import adjusted_rand_score
 
 
 
@@ -243,8 +245,8 @@ def cluster_l1(ncluster, f, shape):
         mat = np.load("./results/GH_OIHP_"+shape+"_l1norm_fil_"+ str(f) +".npy", allow_pickle=True)
 
 
-    #feat = mat
-    feat = mat[:300, :300]
+    feat = mat
+    #feat = mat[:300, :300]
 
     # plot mat as heat map and save mimage
     plt.imshow(feat, cmap='coolwarm', interpolation='nearest')
@@ -256,7 +258,12 @@ def cluster_l1(ncluster, f, shape):
     frd = 10
     frs = ndata//ncluster + 10
 
-
+    ari_score = {}
+    # k-mean clustering
+    kmeans = KMeans(n_clusters=3, random_state=42, n_init=10)
+    y_pred = kmeans.fit_predict(feat)
+    y = [1]*100+[2]*100 + [3]*100
+    ari_score[shape] = adjusted_rand_score(y, y_pred)
 
 
 
@@ -294,7 +301,10 @@ def cluster_l1(ncluster, f, shape):
     plt.show()
     plt.close()
 
-
+    print("##############################")
+    for key, value in ari_score.items():
+        print(f"shape: {key}, ari: {value}")
+    print("##############################")
 
 def visualize_data(ll, f):
     # load coordinates
@@ -390,7 +400,7 @@ def visualize_data(ll, f):
 
 
 if __name__ == '__main__':
-    for f in [6]:
+    for f in ['multi']:
     #for f in ['multi']:
         for shape in ['cubic', 'orthohombic', 'tetragonal']: #[, 'orthohombic']:
             #start_time = time.time()
