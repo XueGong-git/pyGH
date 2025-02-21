@@ -239,7 +239,7 @@ def cluster_l1(ncluster, f, shape):
         mat_4 = np.load("./results/GH_OIHP_"+ shape +"_l1norm_fil_4.npy", allow_pickle=True)[:300, :300]
         mat_5 = np.load("./results/GH_OIHP_"+ shape +"_l1norm_fil_5.npy", allow_pickle=True)[:300, :300]
         mat_6 = np.load("./results/GH_OIHP_"+ shape +"_l1norm_fil_6.npy", allow_pickle=True)[:300, :300]
-        mat = np.concatenate(( mat_3_5, mat_4, mat_5, mat_6), axis=1)
+        mat = np.concatenate((  mat_3_5, mat_4, mat_5, mat_6), axis=1)
 
     else:
         mat = np.load("./results/GH_OIHP_"+shape+"_l1norm_fil_"+ str(f) +".npy", allow_pickle=True)
@@ -268,7 +268,13 @@ def cluster_l1(ncluster, f, shape):
 
 
 
-    values = TSNE(n_components=2, verbose=2).fit_transform(feat)
+    #values = TSNE(n_components=2, verbose=2).fit_transform(feat)
+    
+    import umap
+    umap_model = umap.UMAP(n_components=2, n_neighbors=30, min_dist=0.3, metric='euclidean', random_state=42)
+    values = umap_model.fit_transform(feat)
+
+    
     plt.figure(figsize=(5,5), dpi=200)
     mpl.rcParams['axes.spines.right'] = False
     mpl.rcParams['axes.spines.top'] = False
@@ -293,11 +299,13 @@ def cluster_l1(ncluster, f, shape):
    
     #plt.ylim(np.min(values[:, 1])-10, np.max(values[:,1])+50)
     #plt.xlim(-100, 100)
-    plt.legend(ncol=3, loc='upper left', handlelength=.5, borderpad=.25, fontsize=10)
+    #plt.legend(ncol=3, loc='best', handlelength=.5, borderpad=.25, fontsize=10)
     plt.axis('equal')
     plt.xticks([])
     plt.yticks([])
-    plt.savefig(f"./results/tsne_l1norm_{ncluster}_clusters_"+shape+"_fil_"+ str(f) +".png", dpi=200)
+    plt.xlabel('Dimension 1', fontsize=14)
+    plt.ylabel('Dimension 2', fontsize=14)
+    plt.savefig(f"./results/visualization_l1norm_{ncluster}_clusters_"+shape+"_fil_"+ str(f) +".png", dpi=200)
     plt.show()
     plt.close()
 

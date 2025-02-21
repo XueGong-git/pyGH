@@ -54,29 +54,38 @@ for shape in shapes:
     
     # TSNE
     # Initialize t-SNE with desired parameters
-    tsne = TSNE(n_components=2, perplexity=30, learning_rate=200, n_iter=1000, random_state=42)
+    #tsne = TSNE(n_components=2, perplexity=30, learning_rate=200, n_iter=1000, random_state=42)
     
     # Apply t-SNE to the fingerprint array
-    tsne_results = tsne.fit_transform(fingerprint_array)
+    #tsne_results = tsne.fit_transform(fingerprint_array)
     
-    values = TSNE(n_components=2, verbose=2).fit_transform(fingerprint_array)
+    #values = TSNE(n_components=2, verbose=2).fit_transform(fingerprint_array)
     
     
+    import umap
+    umap_model = umap.UMAP(n_components=2, n_neighbors=30, min_dist=0.3, metric='euclidean', random_state=42)
+    values = umap_model.fit_transform(fingerprint_array)
+
+
     frd = 0
     frs = 100
+    
+    plt.figure(figsize=(5,5), dpi=200)
+    plt.rcParams['axes.spines.right'] = False
+    plt.rcParams['axes.spines.top'] = False
     
     plt.scatter(values[:(frs-frd),0], values[:(frs-frd),1], marker='.', color='tab:blue', alpha=0.75, linewidth=.5, s=40, label="Br")
     plt.scatter(values[(frs-frd):2*(frs-frd),0], values[(frs-frd):2*(frs-frd),1], marker='.', color='tab:orange', alpha=0.75,  linewidth=0.5, s=40, label="Cl")
     plt.scatter(values[2*(frs-frd):3*(frs-frd),0], values[2*(frs-frd):3*(frs-frd),1], marker='.', color='tab:green', alpha=0.75,  linewidth=0.5, s=40, label="I")
     
-    plt.legend(ncol=1, loc='upper right', handlelength=.5, borderpad=.25, fontsize=10, bbox_to_anchor=(1, 1))
+    #plt.legend(ncol=1, loc='best', handlelength=.5, borderpad=.25, fontsize=10, bbox_to_anchor=(1, 1))
     plt.axis('equal')
     plt.xticks([])
     plt.yticks([])
     plt.xlabel('Dimension 1', fontsize=14)
     plt.ylabel('Dimension 2', fontsize=14)
-    plt.legend(fontsize=12)  # Adjust the fontsize here
-    plt.savefig(f"tsne_{fingerprint}_3_clusters_{shape}.png", dpi=200)
+    #plt.legend(fontsize=12)  # Adjust the fontsize here
+    plt.savefig(f"./results/visualization_{fingerprint}_3_clusters_{shape}.png", dpi=200)
     plt.show()
     
 

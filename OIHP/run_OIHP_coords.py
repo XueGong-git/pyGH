@@ -114,8 +114,12 @@ def cluster_coords(ncluster, shape):
     ari_score[shape] = adjusted_rand_score(y, y_pred)
 
     
-    values = TSNE(n_components=2, verbose=2).fit_transform(data)
+    #values = TSNE(n_components=2, verbose=2).fit_transform(data)
     
+    import umap
+    umap_model = umap.UMAP(n_components=2, n_neighbors=30, min_dist=0.3, metric='euclidean', random_state=42)
+    values = umap_model.fit_transform(data)
+
     #values = umap.UMAP(random_state=42).fit_transform(feat)
     plt.figure(figsize=(5,5), dpi=200)
     mpl.rcParams['axes.spines.right'] = False
@@ -147,14 +151,14 @@ def cluster_coords(ncluster, shape):
    
 
     
-    plt.legend(ncol=ncluster//3, loc='upper right', handlelength=.5, borderpad=.25, fontsize=10, bbox_to_anchor=(1, 1))
+    #plt.legend(ncol=ncluster//3, loc='upper right', handlelength=.5, borderpad=.25, fontsize=10, bbox_to_anchor=(1, 1))
     plt.axis('equal')
     plt.xticks([])
     plt.yticks([])
     plt.xlabel('Dimension 1', fontsize=14)
     plt.ylabel('Dimension 2', fontsize=14)
-    plt.legend(fontsize=12)  # Adjust the fontsize here
-    plt.savefig(f"tsne_coords_{ncluster}_clusters_{shape}.png", dpi=200)
+    #plt.legend(fontsize=12)  # Adjust the fontsize here
+    plt.savefig(f"./results/visualization_coords_{ncluster}_clusters_{shape}.png", dpi=200)
     plt.show()
     print("##############################")
     for key, value in ari_score.items():
